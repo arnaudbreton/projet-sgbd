@@ -1,4 +1,5 @@
-package Data;
+package exemple;
+
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -6,7 +7,7 @@ import java.util.ArrayList;
 
 import Utils.OracleJDBC;
 
-public class Client {
+public class Exemple {
 	private final String _getCliReq = "SELECT * FROM Clients C, Adresse A WHERE C.idadresse=A.id AND login=";
 	private final String _getCommReq = "SELECT id FROM Clients C, Commandes_clients CC WHERE C.login=CC.loginclient AND C.login=";
 	
@@ -61,10 +62,10 @@ public class Client {
 	}
 	
 	
-	public Client(){
+	public Exemple(){
 	}
 
-	public Client(String id) {
+	public Exemple(String id) {
 		this();
 		load(id);
 	}
