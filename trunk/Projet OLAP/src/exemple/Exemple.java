@@ -5,7 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import Utils.OracleJDBC;
+import jdbc.OracleJDBC;;
 
 public class Exemple {
 	private final String _getCliReq = "SELECT * FROM Clients C, Adresse A WHERE C.idadresse=A.id AND login=";
