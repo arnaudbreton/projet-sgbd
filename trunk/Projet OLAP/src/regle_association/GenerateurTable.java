@@ -2,7 +2,7 @@ package regle_association;
 
 import java.util.Random;
 
-import jdbc.OracleJDBC;
+import jdbc.MysqlJDBC;
 
 public class GenerateurTable {
 
@@ -34,8 +34,8 @@ public class GenerateurTable {
 		
 
 	
-		OracleJDBC.getInstance().connect();
-		OracleJDBC.getInstance().execute(sbCreate.toString());
+		MysqlJDBC.getInstance().connect();
+		MysqlJDBC.getInstance().execute(sbCreate.toString());
 		
 		Random rnd = new Random();
 		
@@ -54,8 +54,8 @@ public class GenerateurTable {
 		
 		sbInsert.append(");");
 		
-		OracleJDBC.getInstance().execute(sbInsert.toString());
-		OracleJDBC.getInstance().deconnect();
+		MysqlJDBC.getInstance().execute(sbInsert.toString());
+		MysqlJDBC.getInstance().deconnect();
 
 		return true;
 	}

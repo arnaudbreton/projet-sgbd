@@ -24,7 +24,7 @@ public class MysqlJDBC {
 			System.err.println("Erreur: Association base Oracle -> "+e.getMessage());
 		}
 		try {
-			_con = DriverManager.getConnection("jdbc:mysql://sql.free.fr/arnoo91?user=arnoo91&password=mon-passe");
+			_con = DriverManager.getConnection("jdbc:mysql://sql.free.fr/arnoo91?user=arnoo91&password=dragon");
 			//_con = DriverManager.getConnection("jdbc:oracle:thin:gouin/gouin@miageb.isi.u-psud.fr:1521:dbmiage");
 			//_st = _con.createStatement();
 		} catch (SQLException e) {
