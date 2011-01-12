@@ -3,10 +3,10 @@ package regle_association;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import jdbc.MysqlJDBC;
 import jdbc.OracleJDBC;
 
 public class RegleAssociation {
@@ -17,8 +17,21 @@ public class RegleAssociation {
 
 	}
 
-	public Object getAttributFrequent(String nomTable, double minSup,
-			double minConf) throws Exception {
+	public List<RegleAssociation> getReglesAssociations(String nomTable,
+			double minSup, double minConf) throws Exception {
+		// Connexion à la BDD
+		MysqlJDBC.getInstance().connect();
+
+		List<Attribut> itemsFrequents = getAttributsFrequents(nomTable, minSup);
+
+		// Déconnexion de la BDD
+		MysqlJDBC.getInstance().deconnect();
+
+		return null;
+	}
+
+	private List<Attribut> getAttributsFrequents(String nomTable, double minSup)
+			throws Exception {
 		if (nomTable == null || nomTable == "") {
 			throw new Exception(
 					"Un nom de table est nécessaire pour déterminer les fréquences");
@@ -28,67 +41,94 @@ public class RegleAssociation {
 			throw new Exception("Le minimum de support doit être supérieur à 0");
 		}
 
-		if (minConf <= 0) {
-			throw new Exception(
-					"Le minimum de confiance doit être supérieur à 0");
-		}
-
-		// Connexion à la BDD
-		OracleJDBC.getInstance().connect();
-
 		// On récupère l'ensemble des attributs de la table
 		List<Attribut> attsCandidats = getNomAttributs(nomTable);
 
 		// On analyse les attributs
-		int cardinalite = 0;
+		int cardinalite = 1;
 
 		do {
+			// Calcul des candidats d'une certaine cardinalité
 			cardinalite++;
-			genererCandidats(cardinalite, attsCandidats);
+			attsCandidats.addAll(genererCandidats(cardinalite, attsCandidats));
 
-			ArrayList<String> attsFrequents = new ArrayList<String>();
+			// On calcule les attributs fréquents
+			// (A savoir, ceux ayant un support & une confiance supérieure
+			// à minSup & minConf)
+			ArrayList<Attribut> attsFrequents = new ArrayList<Attribut>();
 			for (Attribut attCandidat : attsCandidats) {
-				attCandidat.setSupport(getSupport(attCandidat));
-				attCandidat.setConfiance(getConfiance(attCandidat));
-				if(attCandidat.getSupport() > minSup && attCandidat.getConfiance() > minConf)) {
-					attsFrequents.add(attCandidat);
+				attCandidat.setSupport(getSupport(nomTable, attCandidat));
+				if (attCandidat.getSupport() > minSup) {
+					 attsFrequents.add(attCandidat);
 				}
 			}
 
-			attsCandidats = attsFrequents;
+			attsCandidats.clear();
+			attsCandidats.addAll(attsFrequents);
+			purgerSousEnsembles(attsCandidats);
+
 		} while (attsCandidats.size() > 0 && cardinalite < attsCandidats.size());
 		// Déconnexion de la BDD
-		OracleJDBC.getInstance().deconnect();
+		MysqlJDBC.getInstance().deconnect();
 
-		return null;
+		return attsCandidats;
 	}
 
-	private List<Attribut> getNomAttributs(String nomTable) throws SQLException {
-		ResultSet resultReqNomAtt = OracleJDBC.getInstance().get(
-				"SELECT COLUMN_NAME from USER_TAB_COLUMNS where TABLE_NAME ='"
-						+ nomTable + "'");
+	private List<Attribut> purgerSousEnsembles(List<Attribut> attCandidats) {
+		ArrayList<Attribut> tempsAttsCandidats = new ArrayList<Attribut>();
+		ArrayList<Attribut> attCandidatList = new ArrayList<Attribut>();
+		List<Attribut> sousEnsemble = null;
 
-		ArrayList<Attribut> attributs = new ArrayList<Attribut>();
-		while(resultReqNomAtt.next()) {
-			attributs.add(new Attribut(resultReqNomAtt.getString(0)));
-			resultReqNomAtt.next();
+		for (Attribut attCandidat : attCandidats) {
+			String[] items = attCandidat.getNom().split(" ");
+			int cardinalite = items.length - 1;
+			while (cardinalite > 0) {
+				attCandidatList.clear();
+				for (String item : items) {
+					attCandidatList.add(new Attribut(item));
+				}
+				sousEnsemble = genererCandidats(cardinalite, attCandidatList);
+
+				for(Attribut att : sousEnsemble) {
+					if (!attCandidats.contains(att)) {
+						tempsAttsCandidats.add(att);
+					}
+				}
+
+				cardinalite--;
+			}
 		}
-		
-		return attributs;
+
+		return tempsAttsCandidats;
 	}
 
-	private void genererCandidats(int n, List<Attribut> candidats) {
-		List<String> tempCandidates = new ArrayList<String>(); // temporary
-																// candidate
-																// string List
+	private List<Attribut> getNomAttributs(String nomTable)
+			throws SQLException, InstantiationException, IllegalAccessException {
+		ArrayList<Attribut> itemsSet = new ArrayList<Attribut>();
+
+		List<String> tableItems = MysqlJDBC.getInstance().getColumnsName(
+				nomTable);
+		tableItems.remove(0);
+		for (String itemName : tableItems) {
+			itemsSet.add(new Attribut(itemName));
+		}
+
+		return itemsSet;
+	}
+
+	private List<Attribut> genererCandidats(int n, List<Attribut> candidats) {
+		List<Attribut> tempCandidates = new ArrayList<Attribut>(); // temporary
+																	// candidate
+																	// string
+																	// List
 		String str1, str2; // strings that will be used for comparisons
 		StringTokenizer st1, st2; // string tokenizers for the two itemsets
 									// being compared
 
 		// if its the first set, candidates are just the numbers
 		if (n == 1) {
-			for (int i = 1; i <= candidats.size(); i++) {
-				tempCandidates.add(candidats.get(i).getNom());
+			for (int i = 0; i < candidats.size(); i++) {
+				tempCandidates.add(candidats.get(i));
 			}
 		} else if (n == 2) // second itemset is just all combinations of itemset
 							// 1
@@ -100,7 +140,7 @@ public class RegleAssociation {
 				for (int j = i + 1; j < candidats.size(); j++) {
 					st2 = new StringTokenizer(candidats.get(j).getNom());
 					str2 = st2.nextToken();
-					tempCandidates.add(str1 + " " + str2);
+					tempCandidates.add(new Attribut(str1 + " " + str2));
 				}
 			}
 		} else {
@@ -123,46 +163,42 @@ public class RegleAssociation {
 
 					// if they have the same n-2 tokens, add them together
 					if (str2.compareToIgnoreCase(str1) == 0)
-						tempCandidates
-								.add((str1 + " " + st1.nextToken() + " " + st2
-										.nextToken()).trim());
+						tempCandidates.add(new Attribut((str1 + " "
+								+ st1.nextToken() + " " + st2.nextToken())
+								.trim()));
 				}
 			}
 		}
-		// clear the old candidates
-		candidats.clear();
-		// set the new ones
-		candidats = new ArrayList<Attribut>(tempCandidates);
-		tempCandidates.clear();
+
+		return tempCandidates;
 	}
 
-	private double getSupport(String nomTable, String... attributs) throws SQLException {
+	private double getSupport(String nomTable, Attribut attribut)
+			throws SQLException, InstantiationException, IllegalAccessException {
 		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM " + nomTable
 				+ " WHERE ");
 
-		int nbAtts = 0;
-		while (nbAtts < attributs.length) {
-			if (nbAtts > 0) {
+		String[] attributs = attribut.getNom().split(" ");
+		for (int nbAtts = 0; nbAtts < attributs.length; nbAtts++) {
+			sb.append(attributs[nbAtts] + "=1");
+
+			if (nbAtts + 1 < attributs.length) {
 				sb.append(" AND ");
 			}
-			sb.append(attributs[nbAtts] + "=1");
-			
-			nbAtts++;
 		}
 
-		ResultSet resultRq = OracleJDBC.getInstance().get(sb.toString());
-		
-		return resultRq.getDouble(0);
+		ResultSet resultRq = MysqlJDBC.getInstance().get(sb.toString());
+		resultRq.first();
+		return resultRq.getDouble(1);
 	}
-	
-	private double getConfiance(String nomTable, String attGauche, String... attributs) throws SQLException {
+
+	private double getConfiance(String nomTable, Attribut... attributs)
+			throws SQLException {
 		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM " + nomTable
 				+ " WHERE ");
 
-		
-
 		ResultSet resultRq = OracleJDBC.getInstance().get(sb.toString());
-		
+
 		return resultRq.getDouble(0);
 	}
 }

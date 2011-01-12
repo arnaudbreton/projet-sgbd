@@ -6,12 +6,13 @@ public class TestRegleAssociation {
 
 	/**
 	 * @param args
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
 		RegleAssociation ra = new RegleAssociation();
 		
-		ra.getAttributFrequent("Essai", 0.1, 0.1);
+		ra.getReglesAssociations(args[0], Double.parseDouble(args[1]), Double.parseDouble(args[2]));
 	}
+
 
 }
