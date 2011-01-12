@@ -3,14 +3,11 @@ package regle_association;
 public class Attribut {
 	private String nom;
 	
-	private double support;
-	
-	private double confiance;
-	
+	private double support;	
+
 	public Attribut(String nom) {
 		this.nom = nom;
 		this.support = 0.0;
-		this.confiance = 0.0;
 	}
 
 	public String getNom() {
@@ -28,12 +25,9 @@ public class Attribut {
 	public void setSupport(double support) {
 		this.support = support;
 	}
-
-	public double getConfiance() {
-		return confiance;
-	}
-
-	public void setConfiance(double confiance) {
-		this.confiance = confiance;
+	
+	@Override
+	public boolean equals(Object obj) {
+		return ((Attribut)obj).getNom().equals(this.getNom());
 	}
 }
