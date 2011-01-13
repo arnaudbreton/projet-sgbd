@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import jdbc.MysqlJDBC;
-import jdbc.OracleJDBC;
 
 public class RegleAssociation {
 	/**
@@ -48,10 +47,6 @@ public class RegleAssociation {
 		int cardinalite = 1;
 
 		do {
-			// Calcul des candidats d'une certaine cardinalité
-			cardinalite++;
-			attsCandidats.addAll(genererCandidats(cardinalite, attsCandidats));
-
 			// On calcule les attributs fréquents
 			// (A savoir, ceux ayant un support & une confiance supérieure
 			// à minSup & minConf)
@@ -62,15 +57,20 @@ public class RegleAssociation {
 					 attsFrequents.add(attCandidat);
 				}
 			}
-
+			
 			attsCandidats.clear();
 			attsCandidats.addAll(attsFrequents);
-			purgerSousEnsembles(attsCandidats);
+			
+			// Calcul des candidats d'une certaine cardinalité
+			cardinalite++;		
+			attsCandidats.addAll(genererCandidats(cardinalite, attsCandidats));
 
 		} while (attsCandidats.size() > 0 && cardinalite < attsCandidats.size());
+		
 		// Déconnexion de la BDD
 		MysqlJDBC.getInstance().deconnect();
 
+		purgerSousEnsembles(attsCandidats);
 		return attsCandidats;
 	}
 
@@ -175,30 +175,35 @@ public class RegleAssociation {
 
 	private double getSupport(String nomTable, Attribut attribut)
 			throws SQLException, InstantiationException, IllegalAccessException {
-		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM " + nomTable
-				+ " WHERE ");
+		StringBuilder sbCountWhere1 = new StringBuilder("SELECT COUNT(*) FROM " + nomTable
+				+ " WHERE ");		
 
 		String[] attributs = attribut.getNom().split(" ");
 		for (int nbAtts = 0; nbAtts < attributs.length; nbAtts++) {
-			sb.append(attributs[nbAtts] + "=1");
+			sbCountWhere1.append(attributs[nbAtts] + "=1");
 
 			if (nbAtts + 1 < attributs.length) {
-				sb.append(" AND ");
+				sbCountWhere1.append(" AND ");
 			}
 		}
 
-		ResultSet resultRq = MysqlJDBC.getInstance().get(sb.toString());
-		resultRq.first();
-		return resultRq.getDouble(1);
+		ResultSet resultRqCountWhere1 = MysqlJDBC.getInstance().get(sbCountWhere1.toString());		
+		ResultSet resultRqCount = MysqlJDBC.getInstance().get("SELECT COUNT(*) FROM " + nomTable);
+		
+		resultRqCountWhere1.first();
+		resultRqCount.first();
+		
+		double support = resultRqCountWhere1.getDouble(1) / resultRqCount.getDouble(1);
+		
+		resultRqCount.close();
+		resultRqCountWhere1.close();
+		
+		return support;		
 	}
 
 	private double getConfiance(String nomTable, Attribut... attributs)
 			throws SQLException {
-		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM " + nomTable
-				+ " WHERE ");
-
-		ResultSet resultRq = OracleJDBC.getInstance().get(sb.toString());
-
-		return resultRq.getDouble(0);
+		
+		return 0.0;
 	}
 }
