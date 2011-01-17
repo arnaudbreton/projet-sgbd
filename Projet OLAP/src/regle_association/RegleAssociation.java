@@ -41,66 +41,49 @@ public class RegleAssociation {
 		}
 
 		// On récupère l'ensemble des attributs de la table
-		List<Attribut> attsCandidats = getNomAttributs(nomTable);
+		List<List<Attribut>> attsCandidats = new ArrayList<List<Attribut>>();
+		attsCandidats.add(getNomAttributs(nomTable));
 
 		// On analyse les attributs
-		int cardinalite = 1;
+		int cardinalite = -1;
 
+		boolean candidats = true;
 		do {
 			// On calcule les attributs fréquents
 			// (A savoir, ceux ayant un support & une confiance supérieure
 			// à minSup & minConf)
+			
+			cardinalite++;	
+			
 			ArrayList<Attribut> attsFrequents = new ArrayList<Attribut>();
-			for (Attribut attCandidat : attsCandidats) {
+			for (Attribut attCandidat : attsCandidats.get(cardinalite)) {
 				attCandidat.setSupport(getSupport(nomTable, attCandidat));
 				if (attCandidat.getSupport() > minSup) {
 					 attsFrequents.add(attCandidat);
 				}
 			}
 			
-			attsCandidats.clear();
-			attsCandidats.addAll(attsFrequents);
+			attsCandidats.set(cardinalite, attsFrequents);
 			
 			// Calcul des candidats d'une certaine cardinalité
-			cardinalite++;		
-			attsCandidats.addAll(genererCandidats(cardinalite, attsCandidats));
-
-		} while (attsCandidats.size() > 0 && cardinalite < attsCandidats.size());
-		
-		// Déconnexion de la BDD
-		MysqlJDBC.getInstance().deconnect();
-
-		purgerSousEnsembles(attsCandidats);
-		return attsCandidats;
-	}
-
-	private List<Attribut> purgerSousEnsembles(List<Attribut> attCandidats) {
-		ArrayList<Attribut> tempsAttsCandidats = new ArrayList<Attribut>();
-		ArrayList<Attribut> attCandidatList = new ArrayList<Attribut>();
-		List<Attribut> sousEnsemble = null;
-
-		for (Attribut attCandidat : attCandidats) {
-			String[] items = attCandidat.getNom().split(" ");
-			int cardinalite = items.length - 1;
-			while (cardinalite > 0) {
-				attCandidatList.clear();
-				for (String item : items) {
-					attCandidatList.add(new Attribut(item));
-				}
-				sousEnsemble = genererCandidats(cardinalite, attCandidatList);
-
-				for(Attribut att : sousEnsemble) {
-					if (!attCandidats.contains(att)) {
-						tempsAttsCandidats.add(att);
-					}
-				}
-
-				cardinalite--;
+			
+			if(attsCandidats.get(cardinalite).size() > 1) {
+				attsCandidats.add(genererCandidats(cardinalite+2, attsCandidats.get(cardinalite)));
+			}			
+			else {
+				attsCandidats.remove(cardinalite);
+				candidats = false;
 			}
-		}
 
-		return tempsAttsCandidats;
-	}
+		} while (candidats);
+
+		if(attsCandidats.size() > 0) {
+			return attsCandidats.get(attsCandidats.size()-1);
+		}
+		else {
+			return null;
+		}
+	}	
 
 	private List<Attribut> getNomAttributs(String nomTable)
 			throws SQLException, InstantiationException, IllegalAccessException {
