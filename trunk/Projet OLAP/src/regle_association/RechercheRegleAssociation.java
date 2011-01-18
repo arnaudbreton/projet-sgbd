@@ -3,6 +3,7 @@ package regle_association;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -16,6 +17,21 @@ public class RechercheRegleAssociation {
 		MysqlJDBC.getInstance().connect();
 
 		List<String> itemsFrequents = getStringsFrequents(nomTable, minSup);
+		
+		List<String> partieGauche = null; 
+		
+		for(String itemFrequent : itemsFrequents) {
+			List<String> candidats = Arrays.asList(itemFrequent.split(" "));
+		
+			int cardinalite = candidats.size();
+			for(int cptCardinalite = 0; cptCardinalite < cardinalite; cptCardinalite++) {
+				partieGauche = genererCandidats(cptCardinalite, candidats);
+			}
+			
+			candidats.removeAll(partieGauche);
+			
+			getConfiance(nomTable, partieGauche, candidats);
+		}
 
 		// Déconnexion de la BDD
 		MysqlJDBC.getInstance().deconnect();
@@ -25,6 +41,7 @@ public class RechercheRegleAssociation {
 
 	private List<String> getStringsFrequents(String nomTable, double minSup)
 			throws Exception {
+		
 		if (nomTable == null || nomTable == "") {
 			throw new Exception(
 					"Un nom de table est nécessaire pour déterminer les fréquences");
@@ -57,21 +74,6 @@ public class RechercheRegleAssociation {
 				}
 			}
 
-			//Je parcours F'
-			for(String attFrequentN : attsFrequentsN) {
-				boolean found = false;
-				int cpt = 0;
-				
-				//Je parcours F
-				while (!found && cpt<attsFrequents.size()){
-					found = attFrequentN.contains(attsFrequents.get(cpt));
-				}
-				
-				if (found){
-					attsFrequents.remove(cpt);
-				}
-			}
-			
 			attsFrequents.addAll(attsFrequentsN);
 
 			// Calcul des candidats d'une certaine cardinalité
@@ -162,7 +164,7 @@ public class RechercheRegleAssociation {
 	}
 		
 
-	private double getConfiance(String nomTable, String... Strings)
+	private double getConfiance(String nomTable, List<String> partieGauche, List<String> partieDroite)
 			throws SQLException {
 
 		return 0.0;
