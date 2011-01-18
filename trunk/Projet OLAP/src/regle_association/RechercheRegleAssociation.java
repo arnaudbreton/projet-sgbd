@@ -57,14 +57,21 @@ public class RechercheRegleAssociation {
 				}
 			}
 
-			List<String> attFrequentNonDoublons = new ArrayList<String>();
+			//Je parcours F'
 			for(String attFrequentN : attsFrequentsN) {
-				for(String attFrequentN1 : attsFrequents) {
-					if(attFrequentN.contains(attFrequentN1)) {
-						
-					}
+				boolean found = false;
+				int cpt = 0;
+				
+				//Je parcours F
+				while (!found && cpt<attsFrequents.size()){
+					found = attFrequentN.contains(attsFrequents.get(cpt));
+				}
+				
+				if (found){
+					attsFrequents.remove(cpt);
 				}
 			}
+			
 			attsFrequents.addAll(attsFrequentsN);
 
 			// Calcul des candidats d'une certaine cardinalité
