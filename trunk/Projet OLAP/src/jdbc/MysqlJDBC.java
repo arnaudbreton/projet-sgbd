@@ -30,7 +30,7 @@ public class MysqlJDBC {
 		try {
 			// _con =
 			// DriverManager.getConnection("jdbc:mysql://sql.free.fr/arnoo91?user=arnoo91&password=dragon");
-			_con = DriverManager.getConnection("jdbc:mysql://localhost/mysql",
+			_con = DriverManager.getConnection("jdbc:mysql://localhost/projetBD",
 					"root", "");
 			// _st = _con.createStatement();
 		} catch (SQLException e) {
