@@ -128,10 +128,9 @@ public class Screen{
 					_dataBaseTable.removeAll();
 					try {
 						while(result.next()){
+							TableItem tableItem= new TableItem(_dataBaseTable, SWT.NONE);
 							for (String columnName:columns){
-								TableItem tableItem= new TableItem(_dataBaseTable, SWT.NONE);
-								tableItem.setText(columns.indexOf(columnName), columnName);
-								result.getString(columnName);
+								tableItem.setText(columns.indexOf(columnName), result.getString(columnName));
 							}
 						}
 					} catch (SQLException e) {
@@ -160,7 +159,7 @@ public class Screen{
 		_dataBaseTable.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		//Bouton compute pour lancer le calcul
-		Composite btnBarre = new Composite(shell, SWT.None);
+		Composite btnBarre = new Composite(shell, SWT.RIGHT_TO_LEFT);
 		btnBarre.setLayout(new GridLayout());
 		btnBarre.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		Button btnCompute = new Button(btnBarre,SWT.PUSH);
