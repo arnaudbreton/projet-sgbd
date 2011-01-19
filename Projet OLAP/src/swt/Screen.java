@@ -9,6 +9,8 @@ import jdbc.MysqlJDBC;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
@@ -58,6 +60,14 @@ public class Screen{
 		
 		final Text minConfTxt = new Text(confGroup,SWT.SINGLE);
 		minConfTxt.setText("");
+		minConfTxt.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent arg0) {
+				if (!minConfTxt.getText().isEmpty()){
+					_minConf = minConfTxt.getText();
+				}
+			}
+		});
 		minConfTxt.addFocusListener(new FocusListener(){
 			@Override
 			public void focusGained(FocusEvent arg0) {
@@ -72,8 +82,16 @@ public class Screen{
 		lbl = new Label(confGroup,SWT.NONE);
 		lbl.setText("Min sup: ");
 		
-		Text minSupTxt = new Text(confGroup,SWT.SINGLE);
+		final Text minSupTxt = new Text(confGroup,SWT.SINGLE);
 		minSupTxt.setText("");
+		minSupTxt.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent arg0) {
+				if (!minSupTxt.getText().isEmpty()){
+					_minSup = minSupTxt.getText();
+				}
+			}
+		});
 		
 		//Groupe de sélection de la table
 		Group tableGroup = new Group(shell,SWT.NONE);
