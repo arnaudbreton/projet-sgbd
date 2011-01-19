@@ -173,7 +173,7 @@ public class Screen{
 			public void widgetSelected(SelectionEvent arg0) {
 				if (!_tableName.isEmpty() && !_minConf.isEmpty() && !_minSup.isEmpty()){
 					try {
-						RechercheRegleAssociation.getReglesAssociations(_tableName, Double.parseDouble(_minConf), Double.parseDouble(_minSup));
+						RechercheRegleAssociation.getReglesAssociations(_tableName, Double.parseDouble(_minSup), Double.parseDouble(_minConf));
 					} catch (NumberFormatException e) {
 						e.printStackTrace();
 					} catch (Exception e) {
