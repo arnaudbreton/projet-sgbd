@@ -25,6 +25,8 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
+import regle_association.RechercheRegleAssociation;
+
 public class Screen{
 	private String _tableName;
 	private String _minConf;
@@ -117,6 +119,10 @@ public class Screen{
 					} catch (SQLException e) {
 						e.printStackTrace();
 					}
+					
+					for (TableColumn tableColumn:_dataBaseTable.getColumns()){
+						tableColumn.pack();
+					}
 				}
 			}
 			
@@ -133,13 +139,33 @@ public class Screen{
 		_dataBaseTable = new Table(tableGroup,SWT.BORDER);
 		_dataBaseTable.setHeaderVisible(true);
 		_dataBaseTable.setLinesVisible(true);
+		_dataBaseTable.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
+		//Bouton compute pour lancer le calcul
 		Composite btnBarre = new Composite(shell, SWT.None);
 		btnBarre.setLayout(new GridLayout());
 		btnBarre.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
 		Button btnCompute = new Button(btnBarre,SWT.PUSH);
 		btnCompute.setText("Compute");
+		btnCompute.addSelectionListener(new SelectionListener(){
+			@Override
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+			}
+
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				if (!_tableName.isEmpty() && !_minConf.isEmpty() && !_minSup.isEmpty()){
+					RechercheRegleAssociation ra = new RechercheRegleAssociation();
+					try {
+						ra.getReglesAssociations(_tableName, Double.parseDouble(_minConf), Double.parseDouble(_minSup));
+					} catch (NumberFormatException e) {
+						e.printStackTrace();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}//else
+			}
+		});
 		
 		shell.pack();
 		shell.open();
