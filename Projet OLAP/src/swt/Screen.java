@@ -199,6 +199,8 @@ public class Screen implements Observer{
 						try {
 							List<ItemSet> itemsSets = _ra.getAttributsFrequents(_tableName, Double.parseDouble(_minSup));
 							_itemSetsTable.clearAll();
+							_reglesTable.clearAll();
+							
 							for (ItemSet itemSet:itemsSets){
 								TableItem tableItem = new TableItem(_itemSetsTable, SWT.NONE);
 								tableItem.setText(0, itemSet.getNom());
@@ -209,7 +211,6 @@ public class Screen implements Observer{
 							}
 							
 							List<RegleAssociation> reglesAssociations  = _ra.getReglesAssociations(_tableName, Double.parseDouble(_minConf));
-							_reglesTable.clearAll();
 							for (RegleAssociation regleAssociation:reglesAssociations){
 								TableItem tableItem = new TableItem(_reglesTable, SWT.NONE);
 								tableItem.setText(0, regleAssociation.toString());
