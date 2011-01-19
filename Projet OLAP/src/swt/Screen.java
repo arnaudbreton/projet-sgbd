@@ -27,13 +27,7 @@ public class Screen{
 	private MysqlJDBC _dataBaseConnection; 
 	
 	public Screen(){
-		try {
 			_dataBaseConnection = MysqlJDBC.getInstance();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	public void createContent(){
