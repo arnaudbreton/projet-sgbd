@@ -204,6 +204,9 @@ public class Screen implements Observer{
 								tableItem.setText(0, itemSet.getNom());
 								tableItem.setText(1, String.valueOf(itemSet.getSupport()));
 							}
+							for (TableColumn tableColumn:_itemSetsTable.getColumns()){
+								tableColumn.pack();
+							}
 							
 							List<RegleAssociation> reglesAssociations  = _ra.getReglesAssociations(_tableName, Double.parseDouble(_minConf));
 							_reglesTable.clearAll();
@@ -211,6 +214,9 @@ public class Screen implements Observer{
 								TableItem tableItem = new TableItem(_reglesTable, SWT.NONE);
 								tableItem.setText(0, regleAssociation.toString());
 								tableItem.setText(1, String.valueOf(regleAssociation.getConfiance()));
+							}
+							for (TableColumn tableColumn:_reglesTable.getColumns()){
+								tableColumn.pack();
 							}
 							
 						} catch (NumberFormatException e) {
@@ -246,6 +252,10 @@ public class Screen implements Observer{
 		new TableColumn(_itemSetsTable,SWT.NONE).setText("ItemsSets");
 		new TableColumn(_itemSetsTable,SWT.NONE).setText("Supports");
 		
+		for (TableColumn tableColumn:_itemSetsTable.getColumns()){
+			tableColumn.pack();
+		}
+		
 		//Création du tableau de résultat des règles
 		_reglesTable = new Table(resultGroup,SWT.BORDER | SWT.V_SCROLL);
 		_reglesTable.setLinesVisible(true);
@@ -253,6 +263,10 @@ public class Screen implements Observer{
 		_reglesTable.setLayoutData(new GridData(GridData.FILL_BOTH));
 		new TableColumn(_reglesTable,SWT.NONE).setText("Association rules");
 		new TableColumn(_reglesTable,SWT.NONE).setText("Confidences");
+		
+		for (TableColumn tableColumn:_reglesTable.getColumns()){
+			tableColumn.pack();
+		}
 		
 		shell.pack();
 		shell.open();
