@@ -131,7 +131,9 @@ public class Screen implements Observer{
 						tableColumn.setText(columnName);
 					}
 					
+					_dataBaseConnection.connect();
 					ResultSet result = _dataBaseConnection.get("Select * FROM "+_tableName+";");
+					_dataBaseConnection.deconnect();
 					_dataBaseTable.removeAll();
 					try {
 						while(result.next()){
