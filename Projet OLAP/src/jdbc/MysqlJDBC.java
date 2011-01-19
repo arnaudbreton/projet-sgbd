@@ -107,7 +107,6 @@ public class MysqlJDBC {
 		DatabaseMetaData dmd;
 
 		try {
-			this.connect();
 			dmd = _con.getMetaData();
 
 			ResultSet resultat = dmd.getColumns(_con.getCatalog(), null,
@@ -121,8 +120,6 @@ public class MysqlJDBC {
 
 			resultat.close();
 
-			this.deconnect();
-
 			return columnsName;
 
 		} catch (Exception e) {
@@ -135,17 +132,13 @@ public class MysqlJDBC {
 	 * Liste l'ensemble des noms des tables de la base de données courante
 	 * 
 	 * @return Un tableau contenant l'ensemble des noms des tables de la base de
-	 *         données courante, null sinon.
+	 *         données courante, un tableau vide sinon.
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 * @throws SQLException
 	 */
 	public String[] getTablesNames() {
-
 		try {
-
-			this.connect();
-
 			List<String> tablesNames = new ArrayList<String>();
 
 			DatabaseMetaData dmd = _con.getMetaData();
@@ -154,17 +147,15 @@ public class MysqlJDBC {
 					.getTables(_con.getCatalog(), null, "%", null);
 
 			while (tables.next()) {
-				tablesNames.add(tables.getMetaData().getTableName(0));
+				tablesNames.add(tables.getString("TABLE_NAME"));
 			}
 
 			tables.close();
 
-			this.deconnect();
 			return tablesNames.toArray(new String[tablesNames.size()]);
-
 		} catch (Exception e) {
 			e.printStackTrace();
-			return null;
+			return new String[0];
 		}
 	}
 
