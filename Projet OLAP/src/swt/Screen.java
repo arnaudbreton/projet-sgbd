@@ -30,6 +30,8 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
 import regle_association.RechercheRegleAssociation;
+import regle_association.objets_metiers.ItemSet;
+import regle_association.objets_metiers.RegleAssociation;
 
 public class Screen implements Observer{
 	private String _tableName = "";
@@ -195,11 +197,21 @@ public class Screen implements Observer{
 					
 					if (minConf>=0 && minConf<=1 && minSup >= 0){
 						try {
-							_ra.getAttributsFrequents(_tableName, Double.parseDouble(_minSup));
+							List<ItemSet> itemsSets = _ra.getAttributsFrequents(_tableName, Double.parseDouble(_minSup));
 							_itemSetsTable.clearAll();
+							for (ItemSet itemSet:itemsSets){
+								TableItem tableItem = new TableItem(_itemSetsTable, SWT.NONE);
+								tableItem.setText(0, itemSet.getNom());
+								tableItem.setText(1, String.valueOf(itemSet.getSupport()));
+							}
 							
-							_ra.getReglesAssociations(_tableName, Double.parseDouble(_minConf));
+							List<RegleAssociation> reglesAssociations  = _ra.getReglesAssociations(_tableName, Double.parseDouble(_minConf));
 							_reglesTable.clearAll();
+							for (RegleAssociation regleAssociation:reglesAssociations){
+								TableItem tableItem = new TableItem(_reglesTable, SWT.NONE);
+								tableItem.setText(0, regleAssociation.toString());
+								tableItem.setText(1, String.valueOf(regleAssociation.getConfiance()));
+							}
 							
 						} catch (NumberFormatException e) {
 							e.printStackTrace();
