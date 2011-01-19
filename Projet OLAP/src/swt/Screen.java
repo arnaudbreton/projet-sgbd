@@ -153,7 +153,7 @@ public class Screen{
 		createTableBtn.setText("Create a new Table");
 		
 		//Tableau de la base de donnée
-		_dataBaseTable = new Table(tableGroup,SWT.BORDER);
+		_dataBaseTable = new Table(tableGroup,SWT.BORDER | SWT.V_SCROLL);
 		_dataBaseTable.setHeaderVisible(true);
 		_dataBaseTable.setLinesVisible(true);
 		_dataBaseTable.setLayoutData(new GridData(GridData.FILL_BOTH));
