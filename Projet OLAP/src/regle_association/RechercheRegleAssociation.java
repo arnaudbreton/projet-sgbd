@@ -99,8 +99,7 @@ public class RechercheRegleAssociation extends Observable {
 							addLog("Etude de la règle : "
 									+ rg.toString());
 
-							System.out
-									.println("Calcul de la confiance de la règle "
+							addLog("Calcul de la confiance de la règle "
 											+ rg.toString() + " : " + rg.getConfiance());
 							if (rg.getConfiance() > minConf) {
 								reglesInteressantes.add(rg);
@@ -147,6 +146,8 @@ public class RechercheRegleAssociation extends Observable {
 			throw new Exception("Le minimum de support doit être supérieur à 0");
 		}
 
+		MysqlJDBC.getInstance().connect();
+		
 		// On récupère l'ensemble des Strings de la table
 		List<ItemSet> itemsSetsCandidats = getNomColonnes(nomTable); 
 	
@@ -177,13 +178,13 @@ public class RechercheRegleAssociation extends Observable {
 		} while (itemsSetsCandidats.size() > 1);
 
 		this.itemsSetsFrequents = itemsSetsFrequents;
+		
+		MysqlJDBC.getInstance().deconnect();
 		return itemsSetsFrequents;
 	}
 
 	private static List<ItemSet> getNomColonnes(String nomTable) {
 		List<ItemSet> nomsColonnes;
-		
-		MysqlJDBC.getInstance().connect();
 		
 		nomsColonnes = new ArrayList<ItemSet>();
 		for(String nomColonne : MysqlJDBC.getInstance().getColumnsName(nomTable)) {
@@ -193,8 +194,6 @@ public class RechercheRegleAssociation extends Observable {
 		if(nomsColonnes.size() > 0) {
 			nomsColonnes.remove(0);
 		}
-		
-		MysqlJDBC.getInstance().deconnect();
 		
 		return nomsColonnes;
 	}
