@@ -10,11 +10,8 @@ public class TestRegleAssociation {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		/*RechercheRegleAssociation ra = new RechercheRegleAssociation();
-		
-		ra.getReglesAssociations(args[0], Double.parseDouble(args[1]), Double.parseDouble(args[2]));*/
-		
 		new Screen().createContent();
+		//RechercheRegleAssociation.getReglesAssociations("testfrequent", 5, 0.3);
 	}
 
 

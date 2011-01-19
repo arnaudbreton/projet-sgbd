@@ -7,71 +7,127 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import regle_association.objets_metiers.ItemSet;
+import regle_association.objets_metiers.RegleAssociation;
+
 import jdbc.MysqlJDBC;
 
+/**
+ * Classe permettant d'obtenir pour une table SQL donnée, l'ensemble des règles
+ * d'associations intéressantes.
+ * 
+ * @author Arnaud
+ * 
+ */
 public class RechercheRegleAssociation {
 
-	public List<String> getReglesAssociations(
-			String nomTable, double minSup, double minConf) throws Exception {
-		// Connexion à la BDD
-		MysqlJDBC.getInstance().connect();
+	/**
+	 * Calcule les règles d'associations à partir d'une table
+	 * 
+	 * @param nomTable
+	 *            Le nom de la table
+	 * @param minSup
+	 *            Le minimum de support
+	 * @param minConf
+	 *            Le minimum de confiance
+	 * @return Les règles d'associations intéressantes
+	 * @throws Exception
+	 */
+	public static List<RegleAssociation> getReglesAssociations(String nomTable, double minSup,
+			double minConf) throws Exception {
+		
+		if(minConf < 0 || minConf > 1) {
+			throw new Exception("Le seuil de confiance doit être compris entre 0 et 1");
+		}
 
-		List<String> itemsFrequents = getAttributsFrequents(nomTable, minSup);
+		try {
+			// Connexion à la BDD
+			MysqlJDBC.getInstance().connect();
 
-		List<String> reglesInteressantes = new ArrayList<String>();
-		for (String itemFrequent : itemsFrequents) {
-			System.out.println("Début de l'étude de l'ensemble fréquent : " + itemFrequent);
-			List<String> candidats = Arrays.asList(itemFrequent.split(" "));
+			List<ItemSet> itemsFrequents = getAttributsFrequents(nomTable,
+					minSup);
 
-			int cardinalite = candidats.size();
-			for (int cptCardinalite = 0; cptCardinalite < cardinalite; cptCardinalite++) {
-				List<String> partiesGauches = null;
-				String partieDroite;
-
-				if (cptCardinalite == 0) {
-					partiesGauches = new ArrayList<String>();
-				} else {
-					partiesGauches = genererCandidats(cptCardinalite, candidats);
+			List<RegleAssociation> reglesInteressantes = new ArrayList<RegleAssociation>();
+			for (ItemSet itemFrequent : itemsFrequents) {
+				System.out.println("Début de l'étude de l'ensemble fréquent : "
+						+ itemFrequent);
+				List<ItemSet> candidats = new ArrayList<ItemSet>();
+				
+				for(String item : Arrays.asList(itemFrequent.getNom().split(" "))) {
+					candidats.add(new ItemSet(item));
 				}
 
-				if (partiesGauches.size() == 0) {
-					//getConfiance(nomTable, "", itemFrequent);
-				}
+				int cardinalite = candidats.size();
+				for (int cptCardinalite = 0; cptCardinalite < cardinalite; cptCardinalite++) {
+					List<ItemSet> partiesGauches = null;
+					String partieDroite;
 
-				else {
-					for (String partieGauche : partiesGauches) {
-						partieDroite = itemFrequent;
-						for(String itemPartieGauche : partieGauche.split(" ")) {
-							partieDroite = partieDroite.replace(itemPartieGauche, "");
-						}
-						
-						partieDroite = partieDroite.replaceAll(" +"," ");
-						partieDroite = partieDroite.replaceAll("^ +","");
-						partieDroite = partieDroite.replaceAll(" +$","");
-						
-						String regleEnCours = partieGauche+"=>"+partieDroite;
-						
-						System.out.println("Etude de la règle : " + regleEnCours);
-						double conf = getConfiance(nomTable, partieGauche, partieDroite);
-						
-						System.out.println("Calcul de la confiance de la règle " + regleEnCours + " : " + conf);
-						if(conf > minConf) {
-							reglesInteressantes.add(partieGauche+"=>"+partieDroite);
-							System.out.println(partieGauche+"=>"+partieDroite + " : est intéressante");
+					if (cptCardinalite == 0) {
+						partiesGauches = new ArrayList<ItemSet>();
+					} else {
+						partiesGauches = genererCandidats(cptCardinalite,
+								candidats);
+					}
+
+					if (partiesGauches.size() == 0) {
+						// getConfiance(nomTable, "", itemFrequent);
+					}
+
+					else {
+						for (ItemSet partieGauche : partiesGauches) {
+							partieDroite = itemFrequent.getNom();
+							for (String itemPartieGauche : partieGauche
+									.getNom().split(" ")) {
+								partieDroite =partieDroite.replace(
+										itemPartieGauche, "");
+							}
+
+							partieDroite = partieDroite.replaceAll(" +", " ");
+							partieDroite = partieDroite.replaceAll("^ +", "");
+							partieDroite = partieDroite.replaceAll(" +$", "");
+
+							RegleAssociation rg = new RegleAssociation(partieGauche, new ItemSet(partieDroite));
+							rg.setConfiance(getConfiance(nomTable, rg));
+							
+							System.out.println("Etude de la règle : "
+									+ rg.toString());
+
+							System.out
+									.println("Calcul de la confiance de la règle "
+											+ rg.toString() + " : " + rg.getConfiance());
+							if (rg.getConfiance() > minConf) {
+								reglesInteressantes.add(rg);
+								System.out.println(rg.toString() + " est intéressante.");
+							}
 						}
 					}
 				}
+				System.out.println("Fin de l'étude de l'ensemble fréquent : "
+						+ itemFrequent);
 			}
-			System.out.println("Fin de l'étude de l'ensemble fréquent : " + itemFrequent);
+
+			return reglesInteressantes;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return null; 
 		}
-
-		// Déconnexion de la BDD
-		MysqlJDBC.getInstance().deconnect();
-
-		return reglesInteressantes;
+		finally {
+			// Déconnexion de la BDD
+			MysqlJDBC.getInstance().deconnect();
+		}
 	}
 
-	private List<String> getAttributsFrequents(String nomTable, double minSup)
+	/**
+	 * Calcule les fréquents dépassant un certain seuil
+	 * 
+	 * @param nomTable
+	 *            Nom de la trable sur lequel calculer les fréquents
+	 * @param minSup
+	 *            Le minimum de support
+	 * @return Les ensembles fréquents
+	 * @throws Exception
+	 */
+	private static List<ItemSet> getAttributsFrequents(String nomTable, double minSup)
 			throws Exception {
 
 		if (nomTable == null || nomTable == "") {
@@ -84,12 +140,10 @@ public class RechercheRegleAssociation {
 		}
 
 		// On récupère l'ensemble des Strings de la table
-		List<String> attsCandidats = MysqlJDBC.getInstance().getColumnsName(
-				nomTable);
-		attsCandidats.remove(0);
-
-		List<String> attsFrequents = new ArrayList<String>();
-		ArrayList<String> attsFrequentsN = new ArrayList<String>();
+		List<ItemSet> itemsSetsCandidats = getNomColonnes(nomTable); 
+	
+		List<ItemSet> itemsSetsFrequents = new ArrayList<ItemSet>();
+		ArrayList<ItemSet> itemsSetsFrequentsN = new ArrayList<ItemSet>();
 
 		// On analyse les Strings
 		int cardinalite = 1;
@@ -99,26 +153,50 @@ public class RechercheRegleAssociation {
 			// (A savoir, ceux ayant un support & une confiance supérieure
 			// à minSup & minConf)
 
-			attsFrequentsN.clear();
-			for (String attCandidat : attsCandidats) {
-				double support = getSupport(nomTable, attCandidat);
-				if (support >= minSup) {
-					attsFrequentsN.add(attCandidat);
+			itemsSetsFrequentsN.clear();
+			for (ItemSet attCandidat : itemsSetsCandidats) {
+				attCandidat.setSupport(getSupport(nomTable, attCandidat));
+				if (attCandidat.getSupport() >= minSup) {
+					itemsSetsFrequentsN.add(attCandidat);
 				}
 			}
 
-			attsFrequents.addAll(attsFrequentsN);
+			itemsSetsFrequents.addAll(itemsSetsFrequentsN);
 
 			// Calcul des candidats d'une certaine cardinalité
 			cardinalite++;
-			attsCandidats = genererCandidats(cardinalite, attsFrequentsN);
-		} while (attsCandidats.size() > 1);
+			itemsSetsCandidats = genererCandidats(cardinalite, itemsSetsFrequentsN);
+		} while (itemsSetsCandidats.size() > 1);
 
-		return attsFrequents;
+		return itemsSetsFrequents;
 	}
 
-	private List<String> genererCandidats(int n, List<String> candidats) {
-		List<String> tempCandidates = new ArrayList<String>(); // temporary
+	private static List<ItemSet> getNomColonnes(String nomTable) {
+		List<ItemSet> nomsColonnes;
+		
+		nomsColonnes = new ArrayList<ItemSet>();
+		for(String nomColonne : MysqlJDBC.getInstance().getColumnsName(nomTable)) {
+			nomsColonnes.add(new ItemSet(nomColonne));
+		}
+		
+		if(nomsColonnes.size() > 0) {
+			nomsColonnes.remove(0);
+		}
+		
+		return nomsColonnes;
+	}
+
+	/**
+	 * Génère un ensemble d'attributs d'une certaine cardinalité
+	 * 
+	 * @param n
+	 *            La cardinalité de l'ensemble souhaité
+	 * @param candidats
+	 *            L'ensemble de base
+	 * @return Un ensemble de cardinalité n.
+	 */
+	private static List<ItemSet> genererCandidats(int n, List<ItemSet> candidats) {
+		List<ItemSet> tempCandidates = new ArrayList<ItemSet>(); // temporary
 																// candidate
 																// string
 																// List
@@ -136,12 +214,12 @@ public class RechercheRegleAssociation {
 		{
 			// add each itemset from the previous frequent itemsets together
 			for (int i = 0; i < candidats.size(); i++) {
-				st1 = new StringTokenizer(candidats.get(i));
+				st1 = new StringTokenizer(candidats.get(i).getNom());
 				str1 = st1.nextToken();
 				for (int j = i + 1; j < candidats.size(); j++) {
-					st2 = new StringTokenizer(candidats.get(j));
+					st2 = new StringTokenizer(candidats.get(j).getNom());
 					str2 = st2.nextToken();
-					tempCandidates.add(new String(str1 + " " + str2));
+					tempCandidates.add(new ItemSet(new String(str1 + " " + str2)));
 				}
 			}
 		} else {
@@ -153,8 +231,8 @@ public class RechercheRegleAssociation {
 					str1 = new String();
 					str2 = new String();
 					// create the tokenizers
-					st1 = new StringTokenizer(candidats.get(i));
-					st2 = new StringTokenizer(candidats.get(j));
+					st1 = new StringTokenizer(candidats.get(i).getNom());
+					st2 = new StringTokenizer(candidats.get(j).getNom());
 
 					// make a string of the first n-2 tokens of the strings
 					for (int s = 0; s < n - 2; s++) {
@@ -164,9 +242,9 @@ public class RechercheRegleAssociation {
 
 					// if they have the same n-2 tokens, add them together
 					if (str2.compareToIgnoreCase(str1) == 0)
-						tempCandidates.add(new String((str1 + " "
+						tempCandidates.add(new ItemSet(new String((str1 + " "
 								+ st1.nextToken() + " " + st2.nextToken())
-								.trim()));
+								.trim())));
 				}
 			}
 		}
@@ -174,12 +252,25 @@ public class RechercheRegleAssociation {
 		return tempCandidates;
 	}
 
-	private double getSupport(String nomTable, String String)
+	/**
+	 * Calcul du support
+	 * 
+	 * @param nomTable
+	 *            Nom de la table
+	 * @param String
+	 *            Liste d'attributs
+	 * @return Le support des attributs envoyés
+	 * @throws SQLException
+	 *             Erreur SQL
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	private static double getSupport(String nomTable, ItemSet itemSet)
 			throws SQLException, InstantiationException, IllegalAccessException {
 		StringBuilder sbCountWhere1 = new StringBuilder("SELECT COUNT(*) FROM "
 				+ nomTable + " WHERE ");
 
-		String[] Strings = String.split(" ");
+		String[] Strings = itemSet.getNom().split(" ");
 		for (int nbAtts = 0; nbAtts < Strings.length; nbAtts++) {
 			sbCountWhere1.append(Strings[nbAtts] + "=1");
 
@@ -196,8 +287,9 @@ public class RechercheRegleAssociation {
 		return resultRqCountWhere1.getDouble(1);
 	}
 
-	private double getConfiance(String nomTable, String partieGauche,
-			String partieDroite) throws SQLException, InstantiationException, IllegalAccessException {
-		return getSupport(nomTable, partieGauche.concat(" " + partieDroite)) / getSupport(nomTable, partieGauche);
+	private static double getConfiance(String nomTable, RegleAssociation rg) throws SQLException, InstantiationException,
+			IllegalAccessException {
+		return getSupport(nomTable, new ItemSet(rg.getPartieGauche().getNom().concat(" " + rg.getPartieDroite().getNom())))
+				/ getSupport(nomTable, rg.getPartieGauche());
 	}
 }
