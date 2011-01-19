@@ -28,11 +28,10 @@ public class MysqlJDBC {
 					+ e.getMessage());
 		}
 		try {
-			// _con =
-			// DriverManager.getConnection("jdbc:mysql://sql.free.fr/arnoo91?user=arnoo91&password=dragon");
-			_con = DriverManager.getConnection("jdbc:mysql://localhost/projetBD",
-					"root", "");
-			// _st = _con.createStatement();
+			if (_con == null) {
+				_con = DriverManager.getConnection(
+						"jdbc:mysql://localhost/projetBD", "root", "");
+			}
 		} catch (SQLException e) {
 			System.err.println("Erreur: requete SQL -> " + e.getMessage());
 		}
@@ -87,28 +86,60 @@ public class MysqlJDBC {
 		return null;
 	}
 
+	/**
+	 * 
+	 * @param tableName
+	 * @return
+	 * @throws SQLException
+	 */
 	public List<String> getColumnsName(String tableName) throws SQLException {
 		DatabaseMetaData dmd = _con.getMetaData();
 		ResultSet resultat = dmd.getColumns(_con.getCatalog(), null, tableName,
 				"%");
 
 		ArrayList<String> columnsName = new ArrayList<String>();
-		
+
 		while (resultat.next()) {
 			columnsName.add(resultat.getString("COLUMN_NAME"));
 		}
-		
+
 		resultat.close();
-		
+
 		return columnsName;
+	}
+
+	/**
+	 * Liste l'ensemble des noms des tables de la base de données courante
+	 * 
+	 * @return Un tableau contenant l'ensemble des noms des tables de la base de données courante
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws SQLException
+	 */
+	public String[] getTablesNames() throws InstantiationException,
+			IllegalAccessException, SQLException {
+		this.connect();
+		
+		List<String> tablesNames = new ArrayList<String>();
+
+		DatabaseMetaData dmd = _con.getMetaData();
+
+		ResultSet tables = dmd.getTables(_con.getCatalog(), null, "%", null);
+
+		while (tables.next()) {
+			tablesNames.add(tables.getMetaData().getTableName(0));
+		}
+		
+		tables.close();
+
+		this.deconnect();
+		return tablesNames.toArray(new String[tablesNames.size()]);
 	}
 
 	public void deconnect() {
 		try {
-			// _st.close();
 			_con.close();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
