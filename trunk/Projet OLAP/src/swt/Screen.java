@@ -1,5 +1,8 @@
 package swt;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -13,6 +16,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -30,16 +34,36 @@ import org.eclipse.swt.widgets.Text;
 import regle_association.RechercheRegleAssociation;
 
 public class Screen{
-	private String _tableName;
-	private String _minConf;
-	private String _minSup;
+	private String _tableName = "";
+	private String _minConf = "";
+	private String _minSup = "";
 	
 	private Table _dataBaseTable;
+	private Label _textTraceLog;
+	
+	private PrintStream _traceLog;
 	
 	private MysqlJDBC _dataBaseConnection; 
 	
 	public Screen(){
 			_dataBaseConnection = MysqlJDBC.getInstance();
+			
+			//Affichage des System.out dans la zone Trace Log
+			_traceLog = new PrintStream(new OutputStream() {
+				@Override
+				public void write(int b) throws IOException {
+					_textTraceLog.setText(_textTraceLog.getText()+String.valueOf(b));
+					flush();
+				}
+				
+				@Override
+				public void write(byte[] b) throws IOException {
+					_textTraceLog.setText(_textTraceLog.getText()+String.valueOf(b));
+					flush();
+					//super.write(b);
+				}
+			});
+			System.setOut(_traceLog);
 	}
 	
 	public void createContent(){
@@ -172,16 +196,28 @@ public class Screen{
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
 				if (!_tableName.isEmpty() && !_minConf.isEmpty() && !_minSup.isEmpty()){
-					try {
-						RechercheRegleAssociation.getReglesAssociations(_tableName, Double.parseDouble(_minSup), Double.parseDouble(_minConf));
-					} catch (NumberFormatException e) {
-						e.printStackTrace();
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+					Double minConf = Double.parseDouble(_minConf);
+					Double minSup = Double.parseDouble(_minSup);
+					
+					if (minConf>=0 && minConf<=1 && minSup >= 0){
+						try {
+							RechercheRegleAssociation.getReglesAssociations(_tableName, Double.parseDouble(_minSup), Double.parseDouble(_minConf));
+						} catch (NumberFormatException e) {
+							e.printStackTrace();
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					} //else
 				}//else
 			}
 		});
+		
+		Group traceGrp = new Group (shell, SWT.NONE);
+		traceGrp.setLayout(new FillLayout());
+		traceGrp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		traceGrp.setText("Trace Log");
+		
+		_textTraceLog = new Label(traceGrp, SWT.V_SCROLL);
 		
 		shell.pack();
 		shell.open();
