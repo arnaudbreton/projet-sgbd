@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Observable;
 import java.util.StringTokenizer;
 
 import regle_association.objets_metiers.ItemSet;
@@ -19,8 +20,16 @@ import jdbc.MysqlJDBC;
  * @author Arnaud
  * 
  */
-public class RechercheRegleAssociation {
+public class RechercheRegleAssociation extends Observable {
 
+	@Override
+	protected synchronized void setChanged() {
+		// TODO Auto-generated method stub
+		super.setChanged();
+	}
+
+	private List<ItemSet> itemsSetsFrequents;
+	
 	/**
 	 * Calcule les règles d'associations à partir d'une table
 	 * 
@@ -33,7 +42,7 @@ public class RechercheRegleAssociation {
 	 * @return Les règles d'associations intéressantes
 	 * @throws Exception
 	 */
-	public static List<RegleAssociation> getReglesAssociations(String nomTable, double minSup,
+	public List<RegleAssociation> getReglesAssociations(String nomTable, double minSup,
 			double minConf) throws Exception {
 		
 		if(minConf < 0 || minConf > 1) {
@@ -43,13 +52,14 @@ public class RechercheRegleAssociation {
 		try {
 			// Connexion à la BDD
 			MysqlJDBC.getInstance().connect();
-
-			List<ItemSet> itemsFrequents = getAttributsFrequents(nomTable,
-					minSup);
+			
+			if(this.itemsSetsFrequents == null) {
+				this.itemsSetsFrequents = getAttributsFrequents(nomTable, minSup);
+			}
 
 			List<RegleAssociation> reglesInteressantes = new ArrayList<RegleAssociation>();
-			for (ItemSet itemFrequent : itemsFrequents) {
-				System.out.println("Début de l'étude de l'ensemble fréquent : "
+			for (ItemSet itemFrequent : this.itemsSetsFrequents) {
+				addLog("Début de l'étude de l'ensemble fréquent : "
 						+ itemFrequent);
 				List<ItemSet> candidats = new ArrayList<ItemSet>();
 				
@@ -89,7 +99,7 @@ public class RechercheRegleAssociation {
 							RegleAssociation rg = new RegleAssociation(partieGauche, new ItemSet(partieDroite));
 							rg.setConfiance(getConfiance(nomTable, rg));
 							
-							System.out.println("Etude de la règle : "
+							addLog("Etude de la règle : "
 									+ rg.toString());
 
 							System.out
@@ -97,12 +107,12 @@ public class RechercheRegleAssociation {
 											+ rg.toString() + " : " + rg.getConfiance());
 							if (rg.getConfiance() > minConf) {
 								reglesInteressantes.add(rg);
-								System.out.println(rg.toString() + " est intéressante.");
+								addLog(rg.toString() + " est intéressante.");
 							}
 						}
 					}
 				}
-				System.out.println("Fin de l'étude de l'ensemble fréquent : "
+				addLog("Fin de l'étude de l'ensemble fréquent : "
 						+ itemFrequent);
 			}
 
@@ -114,6 +124,7 @@ public class RechercheRegleAssociation {
 		finally {
 			// Déconnexion de la BDD
 			MysqlJDBC.getInstance().deconnect();
+			this.itemsSetsFrequents = null;
 		}
 	}
 
@@ -127,7 +138,7 @@ public class RechercheRegleAssociation {
 	 * @return Les ensembles fréquents
 	 * @throws Exception
 	 */
-	private static List<ItemSet> getAttributsFrequents(String nomTable, double minSup)
+	public List<ItemSet> getAttributsFrequents(String nomTable, double minSup)
 			throws Exception {
 
 		if (nomTable == null || nomTable == "") {
@@ -168,6 +179,7 @@ public class RechercheRegleAssociation {
 			itemsSetsCandidats = genererCandidats(cardinalite, itemsSetsFrequentsN);
 		} while (itemsSetsCandidats.size() > 1);
 
+		this.itemsSetsFrequents = itemsSetsFrequents;
 		return itemsSetsFrequents;
 	}
 
@@ -195,7 +207,7 @@ public class RechercheRegleAssociation {
 	 *            L'ensemble de base
 	 * @return Un ensemble de cardinalité n.
 	 */
-	private static List<ItemSet> genererCandidats(int n, List<ItemSet> candidats) {
+	private List<ItemSet> genererCandidats(int n, List<ItemSet> candidats) {
 		List<ItemSet> tempCandidates = new ArrayList<ItemSet>(); // temporary
 																// candidate
 																// string
@@ -265,7 +277,7 @@ public class RechercheRegleAssociation {
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	private static double getSupport(String nomTable, ItemSet itemSet)
+	private double getSupport(String nomTable, ItemSet itemSet)
 			throws SQLException, InstantiationException, IllegalAccessException {
 		StringBuilder sbCountWhere1 = new StringBuilder("SELECT COUNT(*) FROM "
 				+ nomTable + " WHERE ");
@@ -287,9 +299,23 @@ public class RechercheRegleAssociation {
 		return resultRqCountWhere1.getDouble(1);
 	}
 
-	private static double getConfiance(String nomTable, RegleAssociation rg) throws SQLException, InstantiationException,
+	/**
+	 * Calcule la confiance d'une règle
+	 * @param nomTable Nom de la table dans lesquels on recherche les données
+	 * @param rg Règles d'associations dont on veut la confiance
+	 * @return La confiance de la règle
+	 * @throws SQLException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	private double getConfiance(String nomTable, RegleAssociation rg) throws SQLException, InstantiationException,
 			IllegalAccessException {
 		return getSupport(nomTable, new ItemSet(rg.getPartieGauche().getNom().concat(" " + rg.getPartieDroite().getNom())))
 				/ getSupport(nomTable, rg.getPartieGauche());
+	}
+	
+	private void addLog(String message) {
+		setChanged();
+		notifyObservers(message);
 	}
 }
