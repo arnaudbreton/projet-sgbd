@@ -219,7 +219,7 @@ public class Screen implements Observer{
 	public void update(Observable arg0, Object arg1) {
 		//Affichage des logs de l'observable
 		if (arg1 instanceof String){
-			_traceLog.setText(_traceLog.getText()+((String) arg1));
+			_traceLog.setText(_traceLog.getText()+"\n"+((String) arg1));
 		}
 	}
 }
