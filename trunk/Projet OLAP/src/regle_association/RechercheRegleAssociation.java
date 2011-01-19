@@ -35,15 +35,12 @@ public class RechercheRegleAssociation extends Observable {
 	 * 
 	 * @param nomTable
 	 *            Le nom de la table
-	 * @param minSup
-	 *            Le minimum de support
 	 * @param minConf
 	 *            Le minimum de confiance
 	 * @return Les règles d'associations intéressantes
 	 * @throws Exception
 	 */
-	public List<RegleAssociation> getReglesAssociations(String nomTable, double minSup,
-			double minConf) throws Exception {
+	public List<RegleAssociation> getReglesAssociations(String nomTable, double minConf) throws Exception {
 		
 		if(minConf < 0 || minConf > 1) {
 			throw new Exception("Le seuil de confiance doit être compris entre 0 et 1");
@@ -54,7 +51,7 @@ public class RechercheRegleAssociation extends Observable {
 			MysqlJDBC.getInstance().connect();
 			
 			if(this.itemsSetsFrequents == null) {
-				this.itemsSetsFrequents = getAttributsFrequents(nomTable, minSup);
+				throw new Exception("Aucun ensemble de fréquents à exploiter");
 			}
 
 			List<RegleAssociation> reglesInteressantes = new ArrayList<RegleAssociation>();
@@ -186,6 +183,8 @@ public class RechercheRegleAssociation extends Observable {
 	private static List<ItemSet> getNomColonnes(String nomTable) {
 		List<ItemSet> nomsColonnes;
 		
+		MysqlJDBC.getInstance().connect();
+		
 		nomsColonnes = new ArrayList<ItemSet>();
 		for(String nomColonne : MysqlJDBC.getInstance().getColumnsName(nomTable)) {
 			nomsColonnes.add(new ItemSet(nomColonne));
@@ -194,6 +193,8 @@ public class RechercheRegleAssociation extends Observable {
 		if(nomsColonnes.size() > 0) {
 			nomsColonnes.remove(0);
 		}
+		
+		MysqlJDBC.getInstance().deconnect();
 		
 		return nomsColonnes;
 	}

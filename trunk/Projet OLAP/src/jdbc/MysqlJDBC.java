@@ -26,7 +26,7 @@ public class MysqlJDBC {
 					+ e.getMessage());
 		}
 		try {
-			if (_con == null) {
+			if (_con == null || _con.isClosed()) {
 				_con = DriverManager.getConnection(
 						"jdbc:mysql://localhost/projetBD", "root", "");
 			}
