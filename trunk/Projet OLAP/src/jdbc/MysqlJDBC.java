@@ -9,8 +9,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-//import utils.OracleJDBC;
-
 public class MysqlJDBC {
 	// private Statement _st;
 	private Connection _con;
@@ -20,10 +18,10 @@ public class MysqlJDBC {
 		connect();
 	}
 
-	public void connect() throws InstantiationException, IllegalAccessException {
+	public void connect() {
 		try {
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
-		} catch (ClassNotFoundException e) {
+		} catch (Exception e) {
 			System.err.println("Erreur: Association base Oracle -> "
 					+ e.getMessage());
 		}
@@ -37,12 +35,20 @@ public class MysqlJDBC {
 		}
 	}
 
-	public static MysqlJDBC getInstance() throws InstantiationException,
-			IllegalAccessException {
+	public static MysqlJDBC getInstance() {
 		if (_instance != null)
 			return _instance;
 		else {
-			_instance = new MysqlJDBC();
+			try {
+				_instance = new MysqlJDBC();
+			} catch (InstantiationException e) {
+				_instance = null;
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				_instance = null;
+				e.printStackTrace();
+			}
+			
 			return _instance;
 		}
 	}
@@ -87,53 +93,79 @@ public class MysqlJDBC {
 	}
 
 	/**
+	 * Liste l'ensemble des noms des colonnes d'une table
 	 * 
 	 * @param tableName
-	 * @return
+	 *            Le nom de la table
+	 * @return Retourne l'ensemble des noms des colonnes d'une table, null si la
+	 *         table n'existe pas.
 	 * @throws SQLException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
 	 */
-	public List<String> getColumnsName(String tableName) throws SQLException {
-		DatabaseMetaData dmd = _con.getMetaData();
-		ResultSet resultat = dmd.getColumns(_con.getCatalog(), null, tableName,
-				"%");
+	public List<String> getColumnsName(String tableName) {
+		DatabaseMetaData dmd;
 
-		ArrayList<String> columnsName = new ArrayList<String>();
+		try {
+			this.connect();
+			dmd = _con.getMetaData();
 
-		while (resultat.next()) {
-			columnsName.add(resultat.getString("COLUMN_NAME"));
+			ResultSet resultat = dmd.getColumns(_con.getCatalog(), null,
+					tableName, "%");
+
+			ArrayList<String> columnsName = new ArrayList<String>();
+
+			while (resultat.next()) {
+				columnsName.add(resultat.getString("COLUMN_NAME"));
+			}
+
+			resultat.close();
+
+			this.deconnect();
+
+			return columnsName;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
 		}
-
-		resultat.close();
-
-		return columnsName;
 	}
 
 	/**
 	 * Liste l'ensemble des noms des tables de la base de données courante
 	 * 
-	 * @return Un tableau contenant l'ensemble des noms des tables de la base de données courante
+	 * @return Un tableau contenant l'ensemble des noms des tables de la base de
+	 *         données courante, null sinon.
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 * @throws SQLException
 	 */
-	public String[] getTablesNames() throws InstantiationException,
-			IllegalAccessException, SQLException {
-		this.connect();
-		
-		List<String> tablesNames = new ArrayList<String>();
+	public String[] getTablesNames() {
 
-		DatabaseMetaData dmd = _con.getMetaData();
+		try {
 
-		ResultSet tables = dmd.getTables(_con.getCatalog(), null, "%", null);
+			this.connect();
 
-		while (tables.next()) {
-			tablesNames.add(tables.getMetaData().getTableName(0));
+			List<String> tablesNames = new ArrayList<String>();
+
+			DatabaseMetaData dmd = _con.getMetaData();
+
+			ResultSet tables = dmd
+					.getTables(_con.getCatalog(), null, "%", null);
+
+			while (tables.next()) {
+				tablesNames.add(tables.getMetaData().getTableName(0));
+			}
+
+			tables.close();
+
+			this.deconnect();
+			return tablesNames.toArray(new String[tablesNames.size()]);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
 		}
-		
-		tables.close();
-
-		this.deconnect();
-		return tablesNames.toArray(new String[tablesNames.size()]);
 	}
 
 	public void deconnect() {
