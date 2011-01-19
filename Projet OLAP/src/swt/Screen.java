@@ -133,7 +133,7 @@ public class Screen implements Observer{
 					
 					_dataBaseConnection.connect();
 					ResultSet result = _dataBaseConnection.get("Select * FROM "+_tableName+";");
-					_dataBaseConnection.deconnect();
+					
 					_dataBaseTable.removeAll();
 					try {
 						while(result.next()){
@@ -149,6 +149,7 @@ public class Screen implements Observer{
 					for (TableColumn tableColumn:_dataBaseTable.getColumns()){
 						tableColumn.pack();
 					}
+					_dataBaseConnection.deconnect();
 				}
 			}
 			
