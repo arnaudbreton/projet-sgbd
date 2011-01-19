@@ -244,13 +244,17 @@ public class Screen implements Observer{
 		resultGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
 		resultGroup.setText("Result");
 
+		TableColumn column;
+		
 		//Création du tableau de résultat des itemSets
 		_itemSetsTable = new Table(resultGroup,SWT.BORDER | SWT.V_SCROLL);
 		_itemSetsTable.setLinesVisible(true);
 		_itemSetsTable.setHeaderVisible(true);
 		_itemSetsTable.setLayoutData(new GridData(GridData.FILL_BOTH));
-		new TableColumn(_itemSetsTable,SWT.NONE).setText("ItemsSets");
-		new TableColumn(_itemSetsTable,SWT.NONE).setText("Supports");
+		column = new TableColumn(_itemSetsTable,SWT.NONE);
+		column.setText("ItemsSets");
+		column = new TableColumn(_itemSetsTable,SWT.NONE);
+		column.setText("Supports");
 		
 		for (TableColumn tableColumn:_itemSetsTable.getColumns()){
 			tableColumn.pack();
@@ -261,8 +265,10 @@ public class Screen implements Observer{
 		_reglesTable.setLinesVisible(true);
 		_reglesTable.setHeaderVisible(true);
 		_reglesTable.setLayoutData(new GridData(GridData.FILL_BOTH));
-		new TableColumn(_reglesTable,SWT.NONE).setText("Association rules");
-		new TableColumn(_reglesTable,SWT.NONE).setText("Confidences");
+		column = new TableColumn(_reglesTable,SWT.NONE);
+		column.setText("Association rules");
+		column = new TableColumn(_reglesTable,SWT.NONE);
+		column.setText("Confidences");
 		
 		for (TableColumn tableColumn:_reglesTable.getColumns()){
 			tableColumn.pack();
