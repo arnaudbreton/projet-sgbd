@@ -1,5 +1,9 @@
 package swt;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+
 import jdbc.MysqlJDBC;
 
 import org.eclipse.swt.SWT;
@@ -17,12 +21,16 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
 public class Screen{
 	private String _tableName;
 	private String _minConf;
 	private String _minSup;
+	
+	private Table _dataBaseTable;
 	
 	private MysqlJDBC _dataBaseConnection; 
 	
@@ -71,7 +79,7 @@ public class Screen{
 		tableGroup.setLayout(new GridLayout(1, false));
 		tableGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		//Barre de sélection/crétaion de la table à utiliser
+		//Barre de sélection/création de la table à utiliser
 		Composite selectTableBar = new Composite(tableGroup,SWT.NONE);
 		selectTableBar.setLayout(new GridLayout(3,false));
 		selectTableBar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -83,10 +91,33 @@ public class Screen{
 		final Combo comboTable = new Combo(selectTableBar, SWT.NONE);
 		comboTable.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		comboTable.setItems(_dataBaseConnection.getTablesNames());
+		comboTable.setText("Select here a table");
 		comboTable.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
 				_tableName = comboTable.getItem(comboTable.getSelectionIndex());
+				if (!_tableName.isEmpty()){
+					List<String> columns = _dataBaseConnection.getColumnsName(_tableName);
+					
+					for (String columnName:columns){
+						TableColumn tableColumn = new TableColumn(_dataBaseTable,SWT.NONE);
+						tableColumn.setText(columnName);
+					}
+					
+					ResultSet result = _dataBaseConnection.get("Select * FROM "+_tableName+";");
+					_dataBaseTable.removeAll();
+					try {
+						while(result.next()){
+							for (String columnName:columns){
+								TableItem tableItem= new TableItem(_dataBaseTable, SWT.NONE);
+								tableItem.setText(columns.indexOf(columnName), columnName);
+								result.getString(columnName);
+							}
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
 			}
 			
 			@Override
@@ -99,9 +130,9 @@ public class Screen{
 		createTableBtn.setText("Create a new Table");
 		
 		//Tableau de la base de donnée
-		Table dataBaseTable = new Table(tableGroup,SWT.BORDER);
-		dataBaseTable.setHeaderVisible(true);
-		dataBaseTable.setLinesVisible(true);
+		_dataBaseTable = new Table(tableGroup,SWT.BORDER);
+		_dataBaseTable.setHeaderVisible(true);
+		_dataBaseTable.setLinesVisible(true);
 		
 		Composite btnBarre = new Composite(shell, SWT.None);
 		btnBarre.setLayout(new GridLayout());
