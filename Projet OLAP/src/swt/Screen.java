@@ -2,7 +2,6 @@ package swt;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -24,6 +23,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -38,7 +38,7 @@ public class Screen implements Observer{
 	private String _minSup = "";
 	
 	private Table _dataBaseTable;
-	private Label _traceLog;
+	private List _traceLog;
 	
 	private MysqlJDBC _dataBaseConnection; 
 	private RechercheRegleAssociation _ra;
@@ -104,7 +104,7 @@ public class Screen implements Observer{
 		Group tableGroup = new Group(shell,SWT.NONE);
 		tableGroup.setText("Table selection");
 		tableGroup.setLayout(new GridLayout(1, false));
-		tableGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		tableGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		//Barre de sélection/création de la table à utiliser
 		Composite selectTableBar = new Composite(tableGroup,SWT.NONE);
@@ -124,7 +124,7 @@ public class Screen implements Observer{
 			public void widgetSelected(SelectionEvent arg0) {
 				_tableName = comboTable.getItem(comboTable.getSelectionIndex());
 				if (!_tableName.isEmpty()){
-					List<String> columns = _dataBaseConnection.getColumnsName(_tableName);
+					java.util.List<String> columns = _dataBaseConnection.getColumnsName(_tableName);
 					
 					for (String columnName:columns){
 						TableColumn tableColumn = new TableColumn(_dataBaseTable,SWT.NONE);
@@ -197,10 +197,10 @@ public class Screen implements Observer{
 		
 		Group traceGrp = new Group (shell, SWT.NONE);
 		traceGrp.setLayout(new FillLayout());
-		traceGrp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		traceGrp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		traceGrp.setText("Trace Log");
 		
-		_traceLog = new Label(traceGrp, SWT.V_SCROLL);
+		_traceLog = new List(traceGrp, SWT.V_SCROLL);
 		
 		shell.pack();
 		shell.open();
@@ -214,8 +214,9 @@ public class Screen implements Observer{
 
 	@Override
 	public void update(Observable arg0, Object arg1) {
+		//Affichage des logs de l'observable
 		if (arg1 instanceof String){
-			_traceLog.setText(((String) arg1));
+			_traceLog.add(((String) arg1));
 		}
 	}
 }
