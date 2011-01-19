@@ -1,8 +1,12 @@
 package swt;
 
+import jdbc.MysqlJDBC;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -16,8 +20,20 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 
 public class Screen{
+	private String _tableName;
+	private String _minConf;
+	private String _minSup;
+	
+	private MysqlJDBC _dataBaseConnection; 
+	
 	public Screen(){
-		
+		try {
+			_dataBaseConnection = MysqlJDBC.getInstance();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void createContent(){
@@ -57,20 +73,41 @@ public class Screen{
 		
 		//Groupe de sélection de la table
 		Group tableGroup = new Group(shell,SWT.NONE);
-		tableGroup.setText("Selection table");
-		tableGroup.setLayout(new GridLayout(2, false));
+		tableGroup.setText("Table selection");
+		tableGroup.setLayout(new GridLayout(1, false));
 		tableGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		lbl = new Label(tableGroup,SWT.NONE);
-		lbl.setText("Nom Table: ");
+		//Barre de sélection/crétaion de la table à utiliser
+		Composite selectTableBar = new Composite(tableGroup,SWT.NONE);
+		selectTableBar.setLayout(new GridLayout(3,false));
+		selectTableBar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		Combo comboTable = new Combo(tableGroup, SWT.NONE);
+		lbl = new Label(selectTableBar,SWT.NONE);
+		lbl.setText("Table name: ");
 		
+		//Combo de choix de la table
+		final Combo comboTable = new Combo(selectTableBar, SWT.NONE);
+		comboTable.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		comboTable.setItems(_dataBaseConnection.getTablesNames());
+		comboTable.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				_tableName = comboTable.getItem(comboTable.getSelectionIndex());
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+			}
+		});
+		
+		//Bouton de création de la table
+		final Button createTableBtn = new Button(selectTableBar,SWT.PUSH);
+		createTableBtn.setText("Create a new Table");
+		
+		//Tableau de la base de donnée
 		Table dataBaseTable = new Table(tableGroup,SWT.BORDER);
 		dataBaseTable.setHeaderVisible(true);
 		dataBaseTable.setLinesVisible(true);
-		
-		
 		
 		Composite btnBarre = new Composite(shell, SWT.None);
 		btnBarre.setLayout(new GridLayout());
