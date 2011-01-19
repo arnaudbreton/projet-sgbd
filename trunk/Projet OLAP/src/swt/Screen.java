@@ -110,9 +110,10 @@ public class Screen{
 					_dataBaseTable.removeAll();
 					try {
 						while(result.next()){
-							TableItem tableItem= new TableItem(_dataBaseTable, SWT.NONE);
 							for (String columnName:columns){
-								tableItem.setText(columns.indexOf(columnName), result.getString(columnName));
+								TableItem tableItem= new TableItem(_dataBaseTable, SWT.NONE);
+								tableItem.setText(columns.indexOf(columnName), columnName);
+								result.getString(columnName);
 							}
 						}
 					} catch (SQLException e) {
@@ -135,13 +136,13 @@ public class Screen{
 		createTableBtn.setText("Create a new Table");
 		
 		//Tableau de la base de donnée
-		_dataBaseTable = new Table(tableGroup,SWT.BORDER | SWT.V_SCROLL);
+		_dataBaseTable = new Table(tableGroup,SWT.BORDER);
 		_dataBaseTable.setHeaderVisible(true);
 		_dataBaseTable.setLinesVisible(true);
 		_dataBaseTable.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		//Bouton compute pour lancer le calcul
-		Composite btnBarre = new Composite(shell, SWT.RIGHT_TO_LEFT);
+		Composite btnBarre = new Composite(shell, SWT.None);
 		btnBarre.setLayout(new GridLayout());
 		btnBarre.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		Button btnCompute = new Button(btnBarre,SWT.PUSH);
@@ -154,9 +155,8 @@ public class Screen{
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
 				if (!_tableName.isEmpty() && !_minConf.isEmpty() && !_minSup.isEmpty()){
-					RechercheRegleAssociation ra = new RechercheRegleAssociation();
 					try {
-						ra.getReglesAssociations(_tableName, Double.parseDouble(_minConf), Double.parseDouble(_minSup));
+						RechercheRegleAssociation.getReglesAssociations(_tableName, Double.parseDouble(_minConf), Double.parseDouble(_minSup));
 					} catch (NumberFormatException e) {
 						e.printStackTrace();
 					} catch (Exception e) {
