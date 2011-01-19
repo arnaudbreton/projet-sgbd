@@ -56,6 +56,7 @@ public class Screen implements Observer{
 		Display display = new Display();
 		Shell shell = new Shell(display);
 		shell.setLayout(new GridLayout(2, false));
+		shell.setText("Algorithme de calcul de règles d'associations (C) Arnaud Breton & Florian Gouin");
 		
 		Composite leftPannel = new Composite(shell, SWT.NONE);
 		leftPannel.setLayoutData(new GridData(GridData.FILL_BOTH));
