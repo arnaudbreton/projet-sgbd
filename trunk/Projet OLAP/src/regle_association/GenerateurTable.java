@@ -39,17 +39,17 @@ public class GenerateurTable {
 					sbCreate.append(",");
 				}
 			}
-			sbCreate.append(");");
+			sbCreate.append(");");		
 
+			System.out.println("Connexion à la base...");
+			MysqlJDBC.getInstance().connect();
+			System.out.println("Connexion à la base réussie");
+			
 			System.out.println("Destruction de la table " + tableName + "...");
 			MysqlJDBC.getInstance().executeUpdate(
 					"DROP TABLE " + tableName + ";");
 			System.out.println("Destruction de la table " + tableName
 					+ " réussie.");
-
-			System.out.println("Connexion à la base...");
-			MysqlJDBC.getInstance().connect();
-			System.out.println("Connexion à la base réussie");
 
 			System.out.println("Création de la table " + tableName + " : "
 					+ sbCreate.toString());

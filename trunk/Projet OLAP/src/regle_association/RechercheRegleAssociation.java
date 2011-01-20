@@ -29,6 +29,7 @@ public class RechercheRegleAssociation extends Observable {
 	}
 
 	private List<ItemSet> itemsSetsFrequents;
+	private int nbLignes;
 	
 	/**
 	 * Calcule les règles d'associations à partir d'une table
@@ -154,6 +155,12 @@ public class RechercheRegleAssociation extends Observable {
 		List<ItemSet> itemsSetsFrequents = new ArrayList<ItemSet>();
 		ArrayList<ItemSet> itemsSetsFrequentsN = new ArrayList<ItemSet>();
 
+		// Calcul unique du nombre de lignes dans la table pour le futur calcul du support
+		ResultSet resultRqCount = MysqlJDBC.getInstance().get("SELECT COUNT(*) FROM " + nomTable);		
+		resultRqCount.first();
+		this.nbLignes = resultRqCount.getInt(1);		
+		resultRqCount.close();
+		
 		// On analyse les Strings
 		int cardinalite = 1;
 
@@ -289,14 +296,15 @@ public class RechercheRegleAssociation extends Observable {
 			if (nbAtts + 1 < Strings.length) {
 				sbCountWhere1.append(" AND ");
 			}
-		}
+		}	
+		
 
 		ResultSet resultRqCountWhere1 = MysqlJDBC.getInstance().get(
 				sbCountWhere1.toString());
 
 		resultRqCountWhere1.first();
 
-		return resultRqCountWhere1.getDouble(1);
+		return resultRqCountWhere1.getDouble(1) / this.nbLignes;
 	}
 
 	/**
