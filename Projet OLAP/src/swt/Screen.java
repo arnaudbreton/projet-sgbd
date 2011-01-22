@@ -104,11 +104,13 @@ public class Screen implements Observer{
 			@Override
 			public void focusLost(FocusEvent arg0) {
 				minConfTxt.setText(minConfTxt.getText().replace(",", "."));
-				float value = Float.parseFloat(minConfTxt.getText());
-				if (value <0)
-					minConfTxt.setText("0");
-				else if (value > 1)
-					minConfTxt.setText("1");
+				if (!minConfTxt.getText().isEmpty()){
+					float value = Float.parseFloat(minConfTxt.getText());
+					if (value <0)
+						minConfTxt.setText("0");
+					else if (value > 1)
+						minConfTxt.setText("1");
+				}
 			}
 		});
 		minConfTxt.addVerifyListener(new VerifyListener(){
@@ -145,11 +147,13 @@ public class Screen implements Observer{
 			@Override
 			public void focusLost(FocusEvent arg0) {
 				minSupTxt.setText(minSupTxt.getText().replace(",", "."));
-				float value = Float.parseFloat(minSupTxt.getText());
-				if (value <0)
-					minSupTxt.setText("0");
-				else if (value > 1)
-					minSupTxt.setText("1");
+				if (!minSupTxt.getText().isEmpty()){
+					float value = Float.parseFloat(minSupTxt.getText());
+					if (value <0)
+						minSupTxt.setText("0");
+					else if (value > 1)
+						minSupTxt.setText("1");
+				}
 			}
 		});
 		minSupTxt.addVerifyListener(new VerifyListener(){
@@ -350,9 +354,8 @@ public class Screen implements Observer{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				comboTable.add(_newTableName);
+				comboTable.setItems(_dataBaseConnection.getTablesNames());
 				comboTable.select(comboTable.indexOf(_newTableName));
-				
 			}
 		});
 		
