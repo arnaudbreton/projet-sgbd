@@ -15,6 +15,8 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -29,6 +31,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
+import regle_association.GenerateurTable;
 import regle_association.RechercheRegleAssociation;
 import regle_association.objets_metiers.ItemSet;
 import regle_association.objets_metiers.RegleAssociation;
@@ -40,11 +43,16 @@ public class Screen implements Observer{
 	
 	private Table _dataBaseTable;
 	private Text _traceLog;
+	private Button _createTableBtn;
 	
 	private MysqlJDBC _dataBaseConnection; 
 	private RechercheRegleAssociation _ra;
 	private Table _itemSetsTable;
 	private Table _reglesTable;
+	protected String _newTableName;
+	protected String _colQty;
+	protected String _linesQty;
+	private Button _btnCompute;
 	
 	public Screen(){
 			_dataBaseConnection = MysqlJDBC.getInstance();
@@ -84,6 +92,7 @@ public class Screen implements Observer{
 				if (!minConfTxt.getText().isEmpty()){
 					_minConf = minConfTxt.getText();
 				}
+				_btnCompute.setEnabled(_minSup!=null && _minConf!=null && !_minConf.isEmpty() && !_minSup.isEmpty());
 			}
 		});
 		minConfTxt.addFocusListener(new FocusListener(){
@@ -94,6 +103,22 @@ public class Screen implements Observer{
 
 			@Override
 			public void focusLost(FocusEvent arg0) {
+				minConfTxt.setText(minConfTxt.getText().replace(",", "."));
+				float value = Float.parseFloat(minConfTxt.getText());
+				if (value <0)
+					minConfTxt.setText("0");
+				else if (value > 1)
+					minConfTxt.setText("1");
+			}
+		});
+		minConfTxt.addVerifyListener(new VerifyListener(){
+			@Override
+			public void verifyText(VerifyEvent e) {
+				e.doit = Character.isISOControl(e.character)
+				|| Character.isDigit(e.character)
+				|| e.character == '\b'
+				|| e.character == '.'
+				|| e.character == ',';
 			}
 		});
 		
@@ -108,6 +133,33 @@ public class Screen implements Observer{
 				if (!minSupTxt.getText().isEmpty()){
 					_minSup = minSupTxt.getText();
 				}
+				_btnCompute.setEnabled(_minSup!=null && _minConf!=null && !_minConf.isEmpty() && !_minSup.isEmpty());
+			}
+		});
+		minSupTxt.addFocusListener(new FocusListener(){
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				minSupTxt.selectAll();
+			}
+
+			@Override
+			public void focusLost(FocusEvent arg0) {
+				minSupTxt.setText(minSupTxt.getText().replace(",", "."));
+				float value = Float.parseFloat(minSupTxt.getText());
+				if (value <0)
+					minSupTxt.setText("0");
+				else if (value > 1)
+					minSupTxt.setText("1");
+			}
+		});
+		minSupTxt.addVerifyListener(new VerifyListener(){
+			@Override
+			public void verifyText(VerifyEvent e) {
+				e.doit = Character.isISOControl(e.character)
+				|| Character.isDigit(e.character)
+				|| e.character == '\b'
+				|| e.character == '.'
+				|| e.character == ',';
 			}
 		});
 		
@@ -119,7 +171,7 @@ public class Screen implements Observer{
 		
 		//Barre de sélection/création de la table à utiliser
 		Composite selectTableBar = new Composite(tableGroup,SWT.NONE);
-		selectTableBar.setLayout(new GridLayout(3,false));
+		selectTableBar.setLayout(new GridLayout(2,false));
 		selectTableBar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		lbl = new Label(selectTableBar,SWT.NONE);
@@ -169,9 +221,140 @@ public class Screen implements Observer{
 			}
 		});
 		
+		//Zone de création de table
+		Composite createTableComposite = new Composite(selectTableBar,SWT.BORDER);
+		createTableComposite.setLayout(new GridLayout(7,false));
+		GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.horizontalSpan=2;
+		createTableComposite.setLayoutData(gridData);
+		
+		//Nom de la table à créer
+		lbl = new Label(createTableComposite,SWT.NONE);
+		lbl.setText("New Table Name: ");
+		
+		final Text tableName = new Text(createTableComposite,SWT.SINGLE);
+		tableName.setText("");
+		tableName.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent arg0) {
+				if (!tableName.getText().isEmpty()){
+					_newTableName = tableName.getText();
+				}
+				_createTableBtn.setEnabled(_linesQty!= null && _colQty!=null && _newTableName!=null && (!_linesQty.isEmpty() && !_colQty.isEmpty() && !_newTableName.isEmpty()));
+			}
+		});
+		tableName.addFocusListener(new FocusListener(){
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				tableName.selectAll();
+			}
+
+			@Override
+			public void focusLost(FocusEvent arg0) {
+			}
+		});
+		tableName.addVerifyListener(new VerifyListener(){
+			@Override
+			public void verifyText(VerifyEvent e) {
+				e.doit = Character.isISOControl(e.character) || Character.isLetter(e.character)
+				|| Character.isDigit(e.character)
+				|| Character.isSpaceChar(e.character) || e.character == '\b'
+				|| e.character == '_';
+			}
+		});
+		
+		//Nombre de colonnes
+		lbl = new Label(createTableComposite,SWT.NONE);
+		lbl.setText("Columns qty: ");
+		
+		final Text colQty = new Text(createTableComposite,SWT.SINGLE);
+		colQty.setText("");
+		colQty.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent arg0) {
+				if (!colQty.getText().isEmpty()){
+					_colQty = colQty.getText();
+				}
+				_createTableBtn.setEnabled(_linesQty!= null && _colQty!=null && _newTableName!=null && (!_linesQty.isEmpty() && !_colQty.isEmpty() && !_newTableName.isEmpty()));
+			}
+		});
+		colQty.addFocusListener(new FocusListener(){
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				colQty.selectAll();
+			}
+
+			@Override
+			public void focusLost(FocusEvent arg0) {
+			}
+		});
+		colQty.addVerifyListener(new VerifyListener(){
+			@Override
+			public void verifyText(VerifyEvent e) {
+				e.doit = Character.isDigit(e.character) || Character.isISOControl(e.character) || e.character == '\b';
+			}
+		});
+		
+		//Nombre de lignes
+		lbl = new Label(createTableComposite,SWT.NONE);
+		lbl.setText("Lines qty: ");
+		
+		final Text linesQty = new Text(createTableComposite,SWT.SINGLE);
+		linesQty.setText("");
+		linesQty.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent arg0) {
+				if (!linesQty.getText().isEmpty()){
+					_linesQty = linesQty.getText();
+				}
+				_createTableBtn.setEnabled(_linesQty!= null && _colQty!=null && _newTableName!=null && (!_linesQty.isEmpty() && !_colQty.isEmpty() && !_newTableName.isEmpty()));
+			}
+		});
+		linesQty.addFocusListener(new FocusListener(){
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				linesQty.selectAll();
+			}
+
+			@Override
+			public void focusLost(FocusEvent arg0) {
+			}
+		});
+		linesQty.addVerifyListener(new VerifyListener(){
+			@Override
+			public void verifyText(VerifyEvent e) {
+				e.doit = Character.isDigit(e.character) || Character.isISOControl(e.character) || e.character == '\b';
+			}
+		});
+		
 		//Bouton de création de la table
-		final Button createTableBtn = new Button(selectTableBar,SWT.PUSH);
-		createTableBtn.setText("Create a new Table");
+		_createTableBtn = new Button(createTableComposite,SWT.PUSH);
+		_createTableBtn.setText("Create a new Table");
+		_createTableBtn.setEnabled(false);
+		_createTableBtn.addSelectionListener(new SelectionListener(){
+			@Override
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+			}
+
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				 try {
+					GenerateurTable.generateTable(_newTableName, Integer.valueOf(_colQty), Integer.valueOf(_linesQty));
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InstantiationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				comboTable.add(_newTableName);
+				comboTable.select(comboTable.indexOf(_newTableName));
+				
+			}
+		});
 		
 		//Tableau de la base de donnée
 		_dataBaseTable = new Table(tableGroup,SWT.BORDER | SWT.V_SCROLL);
@@ -183,9 +366,10 @@ public class Screen implements Observer{
 		Composite btnBarre = new Composite(leftPannel, SWT.RIGHT_TO_LEFT);
 		btnBarre.setLayout(new GridLayout());
 		btnBarre.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		Button btnCompute = new Button(btnBarre,SWT.PUSH);
-		btnCompute.setText("Compute");
-		btnCompute.addSelectionListener(new SelectionListener(){
+		_btnCompute = new Button(btnBarre,SWT.PUSH);
+		_btnCompute.setText("Compute");
+		_btnCompute.setEnabled(false);
+		_btnCompute.addSelectionListener(new SelectionListener(){
 			@Override
 			public void widgetDefaultSelected(SelectionEvent arg0) {
 			}
@@ -278,6 +462,7 @@ public class Screen implements Observer{
 		
 		shell.pack();
 		shell.open();
+		shell.setSize(1100, 700);
 		while (!shell.isDisposed()){
 			if (!display.readAndDispatch())
 			display.sleep();
