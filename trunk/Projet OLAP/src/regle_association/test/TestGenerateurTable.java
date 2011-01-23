@@ -2,6 +2,11 @@ package regle_association.test;
 
 import regle_association.GenerateurTable;
 
+/**
+ * Classe de test du générateur de table
+ * @author Arnaud
+ *
+ */
 public class TestGenerateurTable {
 
 	/**

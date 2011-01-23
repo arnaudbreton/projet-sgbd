@@ -1,13 +1,18 @@
 package regle_association;
 
 public class Attribut {
+	/** 
+	 * Valeur lorsque aucun support n'a été calculé
+	 */
+	public static final double SUPPORT_INDEFINI = -1;
+
 	private String nom;
 	
 	private double support;	
 
 	public Attribut(String nom) {
 		this.nom = nom;
-		this.support = 0.0;
+		this.support = SUPPORT_INDEFINI;
 	}
 
 	public String getNom() {
