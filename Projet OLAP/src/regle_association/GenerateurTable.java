@@ -12,7 +12,7 @@ import jdbc.MysqlJDBC;
 public class GenerateurTable {
 
 	/**
-	 * Génère une table avec un nombre de colonnes et de lignes donnés
+	 * Génère une table avec un nombre de colonnes et de lignes données
 	 * @param tableName Le nom de la table à générer
 	 * @param columnsCount Le nombre de colonnes à générer (nommé A*)
 	 * @param rowsCount Le nombre de lignes à générer (peuplé aléatoirement de 0 et de 1)

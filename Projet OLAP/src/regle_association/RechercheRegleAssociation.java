@@ -22,13 +22,14 @@ import jdbc.MysqlJDBC;
  */
 public class RechercheRegleAssociation extends Observable {
 
-	@Override
-	protected synchronized void setChanged() {
-		// TODO Auto-generated method stub
-		super.setChanged();
-	}
-
+	/**
+	 * Ensemble de fréquents
+	 */
 	private List<ItemSet> itemsSetsFrequents;
+	
+	/**
+	 * Nombre de lignes de la table à analyser
+	 */
 	private int nbLignes;
 	
 	/**
@@ -46,6 +47,8 @@ public class RechercheRegleAssociation extends Observable {
 		if(minConf < 0 || minConf > 1) {
 			throw new Exception("Le seuil de confiance doit être compris entre 0 et 1");
 		}
+		
+		List<RegleAssociation> reglesInteressantes = new ArrayList<RegleAssociation>();
 
 		try {
 			// Connexion à la BDD
@@ -55,7 +58,8 @@ public class RechercheRegleAssociation extends Observable {
 				throw new Exception("Aucun ensemble de fréquents à exploiter");
 			}
 
-			List<RegleAssociation> reglesInteressantes = new ArrayList<RegleAssociation>();
+			
+			// Parcourt de l'ensemble des fréquents
 			for (ItemSet itemFrequent : this.itemsSetsFrequents) {
 				addLog("Début de l'étude de l'ensemble fréquent : "
 						+ itemFrequent);
@@ -66,6 +70,7 @@ public class RechercheRegleAssociation extends Observable {
 				}
 
 				int cardinalite = candidats.size();
+				// Calcul des règles
 				for (int cptCardinalite = 0; cptCardinalite < cardinalite; cptCardinalite++) {
 					List<ItemSet> partiesGauches = null;
 					String partieDroite;
@@ -80,7 +85,6 @@ public class RechercheRegleAssociation extends Observable {
 					if (partiesGauches.size() == 0) {
 						// getConfiance(nomTable, "", itemFrequent);
 					}
-
 					else {
 						for (ItemSet partieGauche : partiesGauches) {
 							partieDroite = itemFrequent.getNom();
@@ -102,6 +106,7 @@ public class RechercheRegleAssociation extends Observable {
 
 							addLog("Calcul de la confiance de la règle "
 											+ rg.toString() + " : " + rg.getConfiance());
+							
 							if (rg.getConfiance() > minConf) {
 								reglesInteressantes.add(rg);
 								addLog(rg.toString() + " est intéressante.");
@@ -111,22 +116,21 @@ public class RechercheRegleAssociation extends Observable {
 				}
 				addLog("Fin de l'étude de l'ensemble fréquent : "
 						+ itemFrequent);
-			}
-
-			return reglesInteressantes;
+			}		
 		} catch (Exception ex) {
-			ex.printStackTrace();
-			return null; 
+			ex.printStackTrace();			
 		}
 		finally {
 			// Déconnexion de la BDD
 			MysqlJDBC.getInstance().deconnect();
 			this.itemsSetsFrequents = null;
 		}
+		
+		return reglesInteressantes;
 	}
 
 	/**
-	 * Calcule les fréquents dépassant un certain seuil
+	 * Calcule les fréquents dépassant un certain seuil de support
 	 * 
 	 * @param nomTable
 	 *            Nom de la trable sur lequel calculer les fréquents
@@ -310,18 +314,28 @@ public class RechercheRegleAssociation extends Observable {
 	/**
 	 * Calcule la confiance d'une règle
 	 * @param nomTable Nom de la table dans lesquels on recherche les données
-	 * @param rg Règles d'associations dont on veut la confiance
+	 * @param rg Règle d'association dont on veut la confiance
 	 * @return La confiance de la règle
 	 * @throws SQLException
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
 	private double getConfiance(String nomTable, RegleAssociation rg) throws SQLException, InstantiationException,
-			IllegalAccessException {
+			IllegalAccessException {		
+		if(rg.getPartieGauche().getSupport() == Attribut.SUPPORT_INDEFINI) {
+			rg.getPartieGauche().setSupport(getSupport(nomTable, rg.getPartieGauche()));
+		}
+		
+		double supportPartieGauche = rg.getPartieGauche().getSupport();
+		
 		return getSupport(nomTable, new ItemSet(rg.getPartieGauche().getNom().concat(" " + rg.getPartieDroite().getNom())))
-				/ getSupport(nomTable, rg.getPartieGauche());
+				/ supportPartieGauche;
 	}
 	
+	/**
+	 * Ecriture d'un message, diffusé par les observateurs,
+	 * @param message
+	 */
 	private void addLog(String message) {
 		setChanged();
 		notifyObservers(message);

@@ -9,15 +9,28 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Classe d'exploitation d'une base de données type MySQL
+ * @author Arnaud
+ *
+ */
 public class MysqlJDBC {
 	// private Statement _st;
 	private Connection _con;
 	private static MysqlJDBC _instance;
 
+	/** 
+	 * Constructeur privé de la classe (Pattern Singleton)
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
 	private MysqlJDBC() throws InstantiationException, IllegalAccessException {
 		connect();
 	}
 
+	/** 
+	 * Connexion à la base
+	 */
 	public void connect() {
 		try {
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
@@ -35,6 +48,10 @@ public class MysqlJDBC {
 		}
 	}
 
+	/**
+	 * Récupération de l'instance unique de la classe
+	 * @return
+	 */
 	public static MysqlJDBC getInstance() {
 		if (_instance != null)
 			return _instance;
@@ -53,6 +70,10 @@ public class MysqlJDBC {
 		}
 	}
 
+	/**
+	 * Exécution d'une requête sans réponse
+	 * @param sqlRequest Requête SQL à exécuter
+	 */
 	public void executeQuery(String sqlRequest) {
 		Statement st;
 		try {
@@ -66,6 +87,10 @@ public class MysqlJDBC {
 		}
 	}
 
+	/**
+	 * Exécution d'une requête de mise à jour
+	 * @param sqlRequest Requête SQL à exécuter
+	 */
 	public void executeUpdate(String sqlRequest) {
 		Statement st;
 		try {
@@ -79,6 +104,11 @@ public class MysqlJDBC {
 		}
 	}
 
+	/**
+	 * Exécution d'une requête avec réponse
+	 * @param sqlRequest Requête SQL à exécuter
+	 * @return La réponse de la requête
+	 */
 	public ResultSet get(String sqlRequest) {
 		Statement st;
 		try {
@@ -124,7 +154,7 @@ public class MysqlJDBC {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			return  new ArrayList<String>();
+			return new ArrayList<String>();
 		}
 	}
 
@@ -159,6 +189,9 @@ public class MysqlJDBC {
 		}
 	}
 
+	/**
+	 * Déconnexion de la base
+	 */
 	public void deconnect() {
 		try {
 			_con.close();

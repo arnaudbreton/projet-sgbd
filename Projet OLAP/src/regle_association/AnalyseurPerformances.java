@@ -2,30 +2,37 @@ package regle_association;
 
 import java.io.FileWriter;
 
+/**
+ * Classe permettant d'analyser les performances de l'algorithme de recherche des règles d'associations
+ * @author Arnaud
+ *
+ */
 public class AnalyseurPerformances {
 
 	/**
-	 * @param args
+	 * Méthode principale d'analyse.
+	 * @param args Arguments d'analyse
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		double minSup = 0.3;
-		double pasSup = 0.1;
+		String nomTable = args[0];
+		
+		double minSup = Double.parseDouble(args[1]);
+		double pasSup = Double.parseDouble(args[2]);
 
-		double minConf = 0.5;
-		double pasConf = 0.1;
+		double minConf = Double.parseDouble(args[3]);
+		double pasConf = Double.parseDouble(args[4]);
+		
 
-		String nomTable = "testFrequent";
+		int nbLignesBase = Integer.parseInt(args[5]);
+		double coeffLignes = Double.parseDouble(args[6]);
+		int nbLignes = nbLignesBase;		
 
-		int nbLignesBase = 50000;
-		int nbLignes = nbLignesBase;
-		double coeffLignes = 0;
-
-		int nbColonnesBase = 5;
+		int nbColonnesBase = Integer.parseInt(args[6]);
 		int nbColonnes = nbColonnesBase;
-		double coeffColonnes = 1.1;
+		double coeffColonnes = Double.parseDouble(args[7]);
 
-		int nbEssais = 10;
+		int nbEssais = Integer.parseInt(args[10]);
 		int cptEssais = 0;
 
 		RechercheRegleAssociation rra = new RechercheRegleAssociation();
