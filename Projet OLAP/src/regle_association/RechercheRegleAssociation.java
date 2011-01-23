@@ -26,12 +26,12 @@ public class RechercheRegleAssociation extends Observable {
 	 * Ensemble de fréquents
 	 */
 	private List<ItemSet> itemsSetsFrequents;
-	
+
 	/**
 	 * Nombre de lignes de la table à analyser
 	 */
 	private int nbLignes;
-	
+
 	/**
 	 * Calcule les règles d'associations à partir d'une table
 	 * 
@@ -42,30 +42,32 @@ public class RechercheRegleAssociation extends Observable {
 	 * @return Les règles d'associations intéressantes
 	 * @throws Exception
 	 */
-	public List<RegleAssociation> getReglesAssociations(String nomTable, double minConf) throws Exception {
-		
-		if(minConf < 0 || minConf > 1) {
-			throw new Exception("Le seuil de confiance doit être compris entre 0 et 1");
+	public List<RegleAssociation> getReglesAssociations(String nomTable,
+			double minConf) throws Exception {
+
+		if (minConf < 0 || minConf > 1) {
+			throw new Exception(
+					"Le seuil de confiance doit être compris entre 0 et 1");
 		}
-		
+
 		List<RegleAssociation> reglesInteressantes = new ArrayList<RegleAssociation>();
 
 		try {
 			// Connexion à la BDD
 			MysqlJDBC.getInstance().connect();
-			
-			if(this.itemsSetsFrequents == null) {
+
+			if (this.itemsSetsFrequents == null) {
 				throw new Exception("Aucun ensemble de fréquents à exploiter");
 			}
 
-			
 			// Parcourt de l'ensemble des fréquents
 			for (ItemSet itemFrequent : this.itemsSetsFrequents) {
 				addLog("Début de l'étude de l'ensemble fréquent : "
 						+ itemFrequent);
 				List<ItemSet> candidats = new ArrayList<ItemSet>();
-				
-				for(String item : Arrays.asList(itemFrequent.getNom().split(" "))) {
+
+				for (String item : Arrays.asList(itemFrequent.getNom().split(
+						" "))) {
 					candidats.add(new ItemSet(item));
 				}
 
@@ -84,13 +86,12 @@ public class RechercheRegleAssociation extends Observable {
 
 					if (partiesGauches.size() == 0) {
 						// getConfiance(nomTable, "", itemFrequent);
-					}
-					else {
+					} else {
 						for (ItemSet partieGauche : partiesGauches) {
 							partieDroite = itemFrequent.getNom();
 							for (String itemPartieGauche : partieGauche
 									.getNom().split(" ")) {
-								partieDroite =partieDroite.replace(
+								partieDroite = partieDroite.replace(
 										itemPartieGauche, "");
 							}
 
@@ -98,15 +99,15 @@ public class RechercheRegleAssociation extends Observable {
 							partieDroite = partieDroite.replaceAll("^ +", "");
 							partieDroite = partieDroite.replaceAll(" +$", "");
 
-							RegleAssociation rg = new RegleAssociation(partieGauche, new ItemSet(partieDroite));
+							RegleAssociation rg = new RegleAssociation(
+									partieGauche, new ItemSet(partieDroite));
 							rg.setConfiance(getConfiance(nomTable, rg));
-							
-							addLog("Etude de la règle : "
-									+ rg.toString());
+
+							addLog("Etude de la règle : " + rg.toString());
 
 							addLog("Calcul de la confiance de la règle "
-											+ rg.toString() + " : " + rg.getConfiance());
-							
+									+ rg.toString() + " : " + rg.getConfiance());
+
 							if (rg.getConfiance() > minConf) {
 								reglesInteressantes.add(rg);
 								addLog(rg.toString() + " est intéressante.");
@@ -116,16 +117,15 @@ public class RechercheRegleAssociation extends Observable {
 				}
 				addLog("Fin de l'étude de l'ensemble fréquent : "
 						+ itemFrequent);
-			}		
+			}
 		} catch (Exception ex) {
-			ex.printStackTrace();			
-		}
-		finally {
+			ex.printStackTrace();
+		} finally {
 			// Déconnexion de la BDD
 			MysqlJDBC.getInstance().deconnect();
 			this.itemsSetsFrequents = null;
 		}
-		
+
 		return reglesInteressantes;
 	}
 
@@ -152,19 +152,21 @@ public class RechercheRegleAssociation extends Observable {
 		}
 
 		MysqlJDBC.getInstance().connect();
-		
+
 		// On récupère l'ensemble des Strings de la table
-		List<ItemSet> itemsSetsCandidats = getNomColonnes(nomTable); 
-	
+		List<ItemSet> itemsSetsCandidats = getNomColonnes(nomTable);
+
 		List<ItemSet> itemsSetsFrequents = new ArrayList<ItemSet>();
 		ArrayList<ItemSet> itemsSetsFrequentsN = new ArrayList<ItemSet>();
 
-		// Calcul unique du nombre de lignes dans la table pour le futur calcul du support
-		ResultSet resultRqCount = MysqlJDBC.getInstance().get("SELECT COUNT(*) FROM " + nomTable);		
+		// Calcul unique du nombre de lignes dans la table pour le futur calcul
+		// du support
+		ResultSet resultRqCount = MysqlJDBC.getInstance().get(
+				"SELECT COUNT(*) FROM " + nomTable);
 		resultRqCount.first();
-		this.nbLignes = resultRqCount.getInt(1);		
+		this.nbLignes = resultRqCount.getInt(1);
 		resultRqCount.close();
-		
+
 		// On analyse les Strings
 		int cardinalite = 1;
 
@@ -185,27 +187,29 @@ public class RechercheRegleAssociation extends Observable {
 
 			// Calcul des candidats d'une certaine cardinalité
 			cardinalite++;
-			itemsSetsCandidats = genererCandidats(cardinalite, itemsSetsFrequentsN);
+			itemsSetsCandidats = genererCandidats(cardinalite,
+					itemsSetsFrequentsN);
 		} while (itemsSetsCandidats.size() > 1);
 
 		this.itemsSetsFrequents = itemsSetsFrequents;
-		
+
 		MysqlJDBC.getInstance().deconnect();
 		return itemsSetsFrequents;
 	}
 
 	private static List<ItemSet> getNomColonnes(String nomTable) {
 		List<ItemSet> nomsColonnes;
-		
+
 		nomsColonnes = new ArrayList<ItemSet>();
-		for(String nomColonne : MysqlJDBC.getInstance().getColumnsName(nomTable)) {
+		for (String nomColonne : MysqlJDBC.getInstance().getColumnsName(
+				nomTable)) {
 			nomsColonnes.add(new ItemSet(nomColonne));
 		}
-		
-		if(nomsColonnes.size() > 0) {
+
+		if (nomsColonnes.size() > 0) {
 			nomsColonnes.remove(0);
 		}
-		
+
 		return nomsColonnes;
 	}
 
@@ -219,60 +223,54 @@ public class RechercheRegleAssociation extends Observable {
 	 * @return Un ensemble de cardinalité n.
 	 */
 	private List<ItemSet> genererCandidats(int n, List<ItemSet> candidats) {
-		List<ItemSet> tempCandidates = new ArrayList<ItemSet>(); // temporary
-																// candidate
-																// string
-																// List
-		String str1, str2; // strings that will be used for comparisons
-		StringTokenizer st1, st2; // string tokenizers for the two itemsets
-									// being compared
+		// List temporaires de candidats
+		List<ItemSet> candidatsTemp = new ArrayList<ItemSet>();
+		// Strings utilisés pour comparaisons
+		String str1, str2;
+		// StringTokenizer utilisés pour comparer les deux ItemsSets
+		StringTokenizer st1, st2;
 
-		// if its the first set, candidates are just the numbers
+		// Si c'est le premier ensemble, seuls les éléments en font partis
 		if (n == 1) {
 			for (int i = 0; i < candidats.size(); i++) {
-				tempCandidates.add(candidats.get(i));
+				candidatsTemp.add(candidats.get(i));
 			}
-		} else if (n == 2) // second itemset is just all combinations of itemset
-							// 1
-		{
-			// add each itemset from the previous frequent itemsets together
+			// Un ItemSet de rang est une combinaison de ceux du rang 1
+		} else if (n == 2) {
+			// Ajout de chaque élément deux à deux
 			for (int i = 0; i < candidats.size(); i++) {
 				st1 = new StringTokenizer(candidats.get(i).getNom());
 				str1 = st1.nextToken();
 				for (int j = i + 1; j < candidats.size(); j++) {
 					st2 = new StringTokenizer(candidats.get(j).getNom());
 					str2 = st2.nextToken();
-					tempCandidates.add(new ItemSet(new String(str1 + " " + str2)));
+					candidatsTemp.add(new ItemSet(
+							new String(str1 + " " + str2)));
 				}
 			}
 		} else {
-			// for each itemset
 			for (int i = 0; i < candidats.size(); i++) {
-				// compare to the next itemset
 				for (int j = i + 1; j < candidats.size(); j++) {
-					// create the strigns
 					str1 = new String();
 					str2 = new String();
-					// create the tokenizers
+
 					st1 = new StringTokenizer(candidats.get(i).getNom());
 					st2 = new StringTokenizer(candidats.get(j).getNom());
 
-					// make a string of the first n-2 tokens of the strings
 					for (int s = 0; s < n - 2; s++) {
 						str1 = str1 + " " + st1.nextToken();
 						str2 = str2 + " " + st2.nextToken();
 					}
 
-					// if they have the same n-2 tokens, add them together
 					if (str2.compareToIgnoreCase(str1) == 0)
-						tempCandidates.add(new ItemSet(new String((str1 + " "
+						candidatsTemp.add(new ItemSet(new String((str1 + " "
 								+ st1.nextToken() + " " + st2.nextToken())
 								.trim())));
 				}
 			}
 		}
 
-		return tempCandidates;
+		return candidatsTemp;
 	}
 
 	/**
@@ -300,8 +298,7 @@ public class RechercheRegleAssociation extends Observable {
 			if (nbAtts + 1 < Strings.length) {
 				sbCountWhere1.append(" AND ");
 			}
-		}	
-		
+		}
 
 		ResultSet resultRqCountWhere1 = MysqlJDBC.getInstance().get(
 				sbCountWhere1.toString());
@@ -313,27 +310,34 @@ public class RechercheRegleAssociation extends Observable {
 
 	/**
 	 * Calcule la confiance d'une règle
-	 * @param nomTable Nom de la table dans lesquels on recherche les données
-	 * @param rg Règle d'association dont on veut la confiance
+	 * 
+	 * @param nomTable
+	 *            Nom de la table dans lesquels on recherche les données
+	 * @param rg
+	 *            Règle d'association dont on veut la confiance
 	 * @return La confiance de la règle
 	 * @throws SQLException
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	private double getConfiance(String nomTable, RegleAssociation rg) throws SQLException, InstantiationException,
-			IllegalAccessException {		
-		if(rg.getPartieGauche().getSupport() == Attribut.SUPPORT_INDEFINI) {
-			rg.getPartieGauche().setSupport(getSupport(nomTable, rg.getPartieGauche()));
+	private double getConfiance(String nomTable, RegleAssociation rg)
+			throws SQLException, InstantiationException, IllegalAccessException {
+		// Si l'ItemSet de gauche possède déjà un support, on l'exploite, sinon on calcul
+		if (rg.getPartieGauche().getSupport() == Attribut.SUPPORT_INDEFINI) {
+			rg.getPartieGauche().setSupport(
+					getSupport(nomTable, rg.getPartieGauche()));
 		}
-		
+
 		double supportPartieGauche = rg.getPartieGauche().getSupport();
-		
-		return getSupport(nomTable, new ItemSet(rg.getPartieGauche().getNom().concat(" " + rg.getPartieDroite().getNom())))
+
+		return getSupport(nomTable, new ItemSet(rg.getPartieGauche().getNom()
+				.concat(" " + rg.getPartieDroite().getNom())))
 				/ supportPartieGauche;
 	}
-	
+
 	/**
 	 * Ecriture d'un message, diffusé par les observateurs,
+	 * 
 	 * @param message
 	 */
 	private void addLog(String message) {

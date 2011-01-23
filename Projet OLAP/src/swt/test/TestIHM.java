@@ -1,4 +1,4 @@
-package regle_association.test;
+package swt.test;
 
 import swt.Screen;
 
