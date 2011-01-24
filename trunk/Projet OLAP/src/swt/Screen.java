@@ -200,6 +200,10 @@ public class Screen implements Observer{
 					}
 					
 					ResultSet result = _dataBaseConnection.get("Select * FROM "+_tableName+";");
+										
+					for( TableColumn column:_dataBaseTable.getColumns()){
+						column.dispose();
+					}
 					
 					_dataBaseTable.clearAll();
 					_dataBaseTable.removeAll();
