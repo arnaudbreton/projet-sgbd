@@ -28,11 +28,11 @@ public class AnalyseurPerformances {
 		double coeffLignes = Double.parseDouble(args[6]);
 		int nbLignes = nbLignesBase;		
 
-		int nbColonnesBase = Integer.parseInt(args[6]);
+		int nbColonnesBase = Integer.parseInt(args[7]);
 		int nbColonnes = nbColonnesBase;
-		double coeffColonnes = Double.parseDouble(args[7]);
+		double coeffColonnes = Double.parseDouble(args[8]);
 
-		int nbEssais = Integer.parseInt(args[10]);
+		int nbEssais = Integer.parseInt(args[9]);
 		int cptEssais = 0;
 
 		RechercheRegleAssociation rra = new RechercheRegleAssociation();
