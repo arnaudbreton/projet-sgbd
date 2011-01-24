@@ -36,7 +36,8 @@ public class AnalyseurPerformances {
 		int cptEssais = 0;
 
 		RechercheRegleAssociation rra = new RechercheRegleAssociation();
-
+		GenerateurTable gt = new GenerateurTable();
+		
 		FileWriter writer = new FileWriter("resultPerfs.txt");
 
 		while (minSup < 1 && minConf < 1) {
@@ -45,7 +46,7 @@ public class AnalyseurPerformances {
 			
 			cptEssais = 0;
 			while (cptEssais < nbEssais) {
-				GenerateurTable.generateTable(nomTable, nbColonnes, nbLignes);
+				gt.generateTable(nomTable, nbColonnes, nbLignes);
 
 				long start = System.currentTimeMillis();
 				rra.getAttributsFrequents(nomTable, minSup);

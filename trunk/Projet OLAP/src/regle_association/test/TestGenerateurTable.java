@@ -18,7 +18,7 @@ public class TestGenerateurTable {
 	public static void main(String[] args) throws InstantiationException,
 			IllegalAccessException {
 		MysqlJDBC.getInstance().connect();
-		GenerateurTable.generateTable(args[0], Integer.parseInt(args[1]),
+		new GenerateurTable().generateTable(args[0], Integer.parseInt(args[1]),
 				Integer.parseInt(args[2]));
 		MysqlJDBC.getInstance().deconnect();
 	}
