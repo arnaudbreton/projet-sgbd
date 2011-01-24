@@ -1,5 +1,6 @@
 package regle_association.test;
 
+import jdbc.MysqlJDBC;
 import regle_association.RechercheRegleAssociation;
 
 /** 
@@ -16,9 +17,11 @@ public class TestRegleAssociation {
 	 */
 	public static void main(String[] args) throws Exception {
 		RechercheRegleAssociation rra = new RechercheRegleAssociation();
-		
+
+		MysqlJDBC.getInstance().connect();
 		rra.getAttributsFrequents(args[0], Double.parseDouble(args[1]));
 		rra.getReglesAssociations(args[0], Double.parseDouble(args[2]));
+		MysqlJDBC.getInstance().deconnect();
 	}
 
 

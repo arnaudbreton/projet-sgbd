@@ -198,7 +198,6 @@ public class Screen implements Observer{
 						tableColumn.setText(columnName);
 					}
 					
-					_dataBaseConnection.connect();
 					ResultSet result = _dataBaseConnection.get("Select * FROM "+_tableName+";");
 					
 					_dataBaseTable.removeAll();
@@ -216,7 +215,6 @@ public class Screen implements Observer{
 					for (TableColumn tableColumn:_dataBaseTable.getColumns()){
 						tableColumn.pack();
 					}
-					_dataBaseConnection.deconnect();
 				}
 			}
 			

@@ -53,9 +53,6 @@ public class RechercheRegleAssociation extends Observable {
 		List<RegleAssociation> reglesInteressantes = new ArrayList<RegleAssociation>();
 
 		try {
-			// Connexion à la BDD
-			MysqlJDBC.getInstance().connect();
-
 			if (this.itemsSetsFrequents == null) {
 				throw new Exception("Aucun ensemble de fréquents à exploiter");
 			}
@@ -121,8 +118,6 @@ public class RechercheRegleAssociation extends Observable {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
-			// Déconnexion de la BDD
-			MysqlJDBC.getInstance().deconnect();
 			this.itemsSetsFrequents = null;
 		}
 
@@ -150,8 +145,6 @@ public class RechercheRegleAssociation extends Observable {
 		if (minSup <= 0) {
 			throw new Exception("Le minimum de support doit être supérieur à 0");
 		}
-
-		MysqlJDBC.getInstance().connect();
 
 		// On récupère l'ensemble des Strings de la table
 		List<ItemSet> itemsSetsCandidats = getNomColonnes(nomTable);
@@ -193,7 +186,6 @@ public class RechercheRegleAssociation extends Observable {
 
 		this.itemsSetsFrequents = itemsSetsFrequents;
 
-		MysqlJDBC.getInstance().deconnect();
 		return itemsSetsFrequents;
 	}
 
