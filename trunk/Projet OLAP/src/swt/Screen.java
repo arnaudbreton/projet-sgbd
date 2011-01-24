@@ -393,7 +393,9 @@ public class Screen implements Observer{
 						try {
 							List<ItemSet> itemsSets = _ra.getAttributsFrequents(_tableName, Double.parseDouble(_minSup));
 							_itemSetsTable.clearAll();
+							_itemSetsTable.removeAll();
 							_reglesTable.clearAll();
+							_reglesTable.removeAll();
 							
 							for (ItemSet itemSet:itemsSets){
 								TableItem tableItem = new TableItem(_itemSetsTable, SWT.NONE);
