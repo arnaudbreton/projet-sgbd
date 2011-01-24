@@ -55,7 +55,7 @@ public class AnalyseurPerformances {
 				
 				writer.write(String
 						.format("Temps d'exécution essai n° %d (nbColonnes : %d, nbLignes : %d, minSup : %f, minConf : %f) : %dms %n",
-								cptEssais, nbColonnes, nbLignes, minSup, minConf,
+								cptEssais+1, nbColonnes, nbLignes, minSup, minConf,
 								end - start));
 				//writer.write(end-start+";");
 
