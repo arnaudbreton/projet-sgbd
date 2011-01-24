@@ -189,6 +189,7 @@ public class Screen implements Observer{
 		comboTable.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
+				
 				_tableName = comboTable.getItem(comboTable.getSelectionIndex());
 				if (!_tableName.isEmpty()){
 					List<String> columns = _dataBaseConnection.getColumnsName(_tableName);
@@ -200,7 +201,9 @@ public class Screen implements Observer{
 					
 					ResultSet result = _dataBaseConnection.get("Select * FROM "+_tableName+";");
 					
+					_dataBaseTable.clearAll();
 					_dataBaseTable.removeAll();
+					
 					try {
 						while(result.next()){
 							TableItem tableItem= new TableItem(_dataBaseTable, SWT.NONE);
