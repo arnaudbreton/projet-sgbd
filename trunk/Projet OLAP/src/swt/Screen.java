@@ -194,16 +194,17 @@ public class Screen implements Observer{
 				if (!_tableName.isEmpty()){
 					List<String> columns = _dataBaseConnection.getColumnsName(_tableName);
 					
+					for( TableColumn column:_dataBaseTable.getColumns()){
+						column.dispose();
+					}
+					
+					
 					for (String columnName:columns){
 						TableColumn tableColumn = new TableColumn(_dataBaseTable,SWT.NONE);
 						tableColumn.setText(columnName);
 					}
 					
 					ResultSet result = _dataBaseConnection.get("Select * FROM "+_tableName+";");
-										
-					for( TableColumn column:_dataBaseTable.getColumns()){
-						column.dispose();
-					}
 					
 					_dataBaseTable.clearAll();
 					_dataBaseTable.removeAll();
