@@ -41,10 +41,6 @@ public class GenerateurTable {
 			}
 			sbCreate.append(");");		
 
-			System.out.println("Connexion à la base...");
-			MysqlJDBC.getInstance().connect();
-			System.out.println("Connexion à la base réussie");
-			
 			System.out.println("Destruction de la table " + tableName + "...");
 			MysqlJDBC.getInstance().executeUpdate(
 					"DROP TABLE " + tableName + ";");
@@ -83,8 +79,7 @@ public class GenerateurTable {
 			}
 
 			System.out.println("Déconnexion de la base...");
-			MysqlJDBC.getInstance().deconnect();
-
+			
 			return true;
 		} catch (Exception ex) {
 			return false;

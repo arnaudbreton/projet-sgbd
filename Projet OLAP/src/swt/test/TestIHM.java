@@ -1,5 +1,6 @@
 package swt.test;
 
+import jdbc.MysqlJDBC;
 import swt.Screen;
 
 /**
@@ -13,7 +14,9 @@ public class TestIHM {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		MysqlJDBC.getInstance().connect();
 		new Screen().createContent();
+		MysqlJDBC.getInstance().deconnect();
 	}
 
 }
