@@ -47,6 +47,7 @@ public class Screen implements Observer{
 	
 	private MysqlJDBC _dataBaseConnection; 
 	private RechercheRegleAssociation _ra;
+	private GenerateurTable _gt;
 	private Table _itemSetsTable;
 	private Table _reglesTable;
 	protected String _newTableName;
@@ -58,6 +59,9 @@ public class Screen implements Observer{
 			_dataBaseConnection = MysqlJDBC.getInstance();
 			_ra = new RechercheRegleAssociation();
 			_ra.addObserver(this);
+			
+			_gt = new GenerateurTable();
+			_gt.addObserver(this);
 	}
 	
 	public void createContent(){
@@ -349,7 +353,7 @@ public class Screen implements Observer{
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
 				 try {
-					GenerateurTable.generateTable(_newTableName, Integer.valueOf(_colQty), Integer.valueOf(_linesQty));
+					_gt.generateTable(_newTableName, Integer.valueOf(_colQty), Integer.valueOf(_linesQty));
 				} catch (NumberFormatException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
