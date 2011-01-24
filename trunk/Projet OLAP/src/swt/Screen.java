@@ -54,6 +54,7 @@ public class Screen implements Observer{
 	protected String _colQty;
 	protected String _linesQty;
 	private Button _btnCompute;
+	private Combo comboTable;
 	
 	public Screen(){
 			_dataBaseConnection = MysqlJDBC.getInstance();
@@ -186,48 +187,14 @@ public class Screen implements Observer{
 		lbl.setText("Table name: ");
 		
 		//Combo de choix de la table
-		final Combo comboTable = new Combo(selectTableBar, SWT.NONE);
+		comboTable = new Combo(selectTableBar, SWT.NONE);
 		comboTable.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		comboTable.setItems(_dataBaseConnection.getTablesNames());
 		comboTable.setText("Select here a table");
 		comboTable.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
-				
-				_tableName = comboTable.getItem(comboTable.getSelectionIndex());
-				if (!_tableName.isEmpty()){
-					List<String> columns = _dataBaseConnection.getColumnsName(_tableName);
-					
-					for( TableColumn column:_dataBaseTable.getColumns()){
-						column.dispose();
-					}
-					
-					
-					for (String columnName:columns){
-						TableColumn tableColumn = new TableColumn(_dataBaseTable,SWT.NONE);
-						tableColumn.setText(columnName);
-					}
-					
-					ResultSet result = _dataBaseConnection.get("Select * FROM "+_tableName+";");
-					
-					_dataBaseTable.clearAll();
-					_dataBaseTable.removeAll();
-					
-					try {
-						while(result.next()){
-							TableItem tableItem= new TableItem(_dataBaseTable, SWT.NONE);
-							for (String columnName:columns){
-								tableItem.setText(columns.indexOf(columnName), result.getString(columnName));
-							}
-						}
-					} catch (SQLException e) {
-						e.printStackTrace();
-					}
-					
-					for (TableColumn tableColumn:_dataBaseTable.getColumns()){
-						tableColumn.pack();
-					}
-				}
+				updateTableContent();
 			}
 			
 			@Override
@@ -366,6 +333,7 @@ public class Screen implements Observer{
 				}
 				comboTable.setItems(_dataBaseConnection.getTablesNames());
 				comboTable.select(comboTable.indexOf(_newTableName));
+				updateTableContent();
 			}
 		});
 		
@@ -490,6 +458,43 @@ public class Screen implements Observer{
 		//Affichage des logs de l'observable
 		if (arg1 instanceof String){
 			_traceLog.setText(_traceLog.getText()+System.getProperty("line.separator")+((String) arg1));
+		}
+	}
+	
+	private void updateTableContent() {
+			_tableName = comboTable.getItem(comboTable.getSelectionIndex());
+		if (!_tableName.isEmpty()){
+			List<String> columns = _dataBaseConnection.getColumnsName(_tableName);
+			
+			for( TableColumn column:_dataBaseTable.getColumns()){
+				column.dispose();
+			}
+			
+			
+			for (String columnName:columns){
+				TableColumn tableColumn = new TableColumn(_dataBaseTable,SWT.NONE);
+				tableColumn.setText(columnName);
+			}
+			
+			ResultSet result = _dataBaseConnection.get("Select * FROM "+_tableName+";");
+			
+			_dataBaseTable.clearAll();
+			_dataBaseTable.removeAll();
+			
+			try {
+				while(result.next()){
+					TableItem tableItem= new TableItem(_dataBaseTable, SWT.NONE);
+					for (String columnName:columns){
+						tableItem.setText(columns.indexOf(columnName), result.getString(columnName));
+					}
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			
+			for (TableColumn tableColumn:_dataBaseTable.getColumns()){
+				tableColumn.pack();
+			}
 		}
 	}
 }

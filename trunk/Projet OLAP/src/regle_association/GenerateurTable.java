@@ -42,12 +42,17 @@ public class GenerateurTable extends Observable {
 			}
 			sbCreate.append(");");		
 
-			addLog("Destruction de la table " + tableName + "...");
-			MysqlJDBC.getInstance().executeUpdate(
-					"DROP TABLE " + tableName + ";");
-			addLog("Destruction de la table " + tableName
-					+ " réussie.");
-
+			try {
+				addLog("Destruction de la table " + tableName + "...");
+				MysqlJDBC.getInstance().executeUpdate(
+						"DROP TABLE " + tableName + ";");
+				addLog("Destruction de la table " + tableName
+						+ " réussie.");
+			}
+			catch(Exception ex) {
+				addLog("Table " + tableName + " inexistante.");
+			}
+			
 			addLog("Création de la table " + tableName + " : "
 					+ sbCreate.toString());
 			MysqlJDBC.getInstance().executeUpdate(sbCreate.toString());
