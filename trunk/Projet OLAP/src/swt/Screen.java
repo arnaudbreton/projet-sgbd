@@ -332,8 +332,12 @@ public class Screen implements Observer{
 					e.printStackTrace();
 				}
 				comboTable.setItems(_dataBaseConnection.getTablesNames());
-				comboTable.select(comboTable.indexOf(_newTableName));
-				updateTableContent();
+				int indexNewTable = comboTable.indexOf(_newTableName);
+				
+				if(indexNewTable != -1) {
+					comboTable.select(indexNewTable);
+					updateTableContent();
+				}
 			}
 		});
 		
@@ -363,11 +367,12 @@ public class Screen implements Observer{
 					
 					if (minConf>=0 && minConf<=1 && minSup >= 0){
 						try {
-							List<ItemSet> itemsSets = _ra.getAttributsFrequents(_tableName, Double.parseDouble(_minSup));
 							_itemSetsTable.clearAll();
 							_itemSetsTable.removeAll();
 							_reglesTable.clearAll();
 							_reglesTable.removeAll();
+							
+							List<ItemSet> itemsSets = _ra.getAttributsFrequents(_tableName, Double.parseDouble(_minSup));
 							
 							for (ItemSet itemSet:itemsSets){
 								TableItem tableItem = new TableItem(_itemSetsTable, SWT.NONE);
