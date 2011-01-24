@@ -2,6 +2,7 @@ package regle_association;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -297,7 +298,13 @@ public class RechercheRegleAssociation extends Observable {
 
 		resultRqCountWhere1.first();
 
-		return resultRqCountWhere1.getDouble(1) / this.nbLignes;
+		double support = resultRqCountWhere1.getDouble(1) / this.nbLignes;
+		
+		DecimalFormat df = new  DecimalFormat ("0.##");
+        String d = df.format (support);
+        d = d.replaceAll (",", ".");
+        
+		return Double.parseDouble(d);
 	}
 
 	/**
@@ -322,9 +329,15 @@ public class RechercheRegleAssociation extends Observable {
 
 		double supportPartieGauche = rg.getPartieGauche().getSupport();
 
-		return getSupport(nomTable, new ItemSet(rg.getPartieGauche().getNom()
+		double confiance = getSupport(nomTable, new ItemSet(rg.getPartieGauche().getNom()
 				.concat(" " + rg.getPartieDroite().getNom())))
 				/ supportPartieGauche;
+		
+		DecimalFormat df = new  DecimalFormat ("0.##");
+        String d = df.format (confiance);
+        d = d.replaceAll (",", ".");
+        
+		return Double.parseDouble(d);
 	}
 
 	/**
