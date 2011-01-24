@@ -1,5 +1,6 @@
 package regle_association;
 
+import java.util.Observable;
 import java.util.Random;
 
 import jdbc.MysqlJDBC;
@@ -9,7 +10,7 @@ import jdbc.MysqlJDBC;
  * @author Arnaud
  *
  */
-public class GenerateurTable {
+public class GenerateurTable extends Observable {
 
 	/**
 	 * Génère une table avec un nombre de colonnes et de lignes données
@@ -20,7 +21,7 @@ public class GenerateurTable {
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	public static boolean generateTable(String tableName, int columnsCount,
+	public boolean generateTable(String tableName, int columnsCount,
 			int rowsCount) throws InstantiationException,
 			IllegalAccessException {
 		StringBuffer sbCreate, sbInsert;
@@ -41,21 +42,21 @@ public class GenerateurTable {
 			}
 			sbCreate.append(");");		
 
-			System.out.println("Destruction de la table " + tableName + "...");
+			addLog("Destruction de la table " + tableName + "...");
 			MysqlJDBC.getInstance().executeUpdate(
 					"DROP TABLE " + tableName + ";");
-			System.out.println("Destruction de la table " + tableName
+			addLog("Destruction de la table " + tableName
 					+ " réussie.");
 
-			System.out.println("Création de la table " + tableName + " : "
+			addLog("Création de la table " + tableName + " : "
 					+ sbCreate.toString());
 			MysqlJDBC.getInstance().executeUpdate(sbCreate.toString());
-			System.out.println("Création de la table " + tableName
+			addLog("Création de la table " + tableName
 					+ " réussie.");
 
 			Random rnd = new Random();
 
-			System.out.println("Peuplement de la table...");
+			addLog("Peuplement de la table...");
 			sbInsert = new StringBuffer();
 			for (int cptRow = 0; cptRow < rowsCount; cptRow++) {
 				sbInsert.delete(0, sbInsert.length());
@@ -71,18 +72,28 @@ public class GenerateurTable {
 				}
 
 				sbInsert.append(");");
-				System.out.println("Insertion d'une ligne dans la table "
+				addLog("Insertion d'une ligne dans la table "
 						+ tableName + " : " + sbInsert.toString());
 				MysqlJDBC.getInstance().executeUpdate(sbInsert.toString());
-				System.out.println("Insertion d'une ligne dans la table "
+				addLog("Insertion d'une ligne dans la table "
 						+ tableName + " réussie.");
 			}
 
-			System.out.println("Déconnexion de la base...");
+			addLog("Déconnexion de la base...");
 			
 			return true;
 		} catch (Exception ex) {
 			return false;
 		}
+	}
+	
+	/**
+	 * Ecriture d'un message, diffusé par les observateurs,
+	 * 
+	 * @param message
+	 */
+	private void addLog(String message) {
+		setChanged();
+		notifyObservers(message);
 	}
 }
